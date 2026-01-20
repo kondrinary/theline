@@ -204,16 +204,17 @@ window.AppConfig = {
   // Ветка RTDB
   DB_PATH: 'dates',
 
-  // Firebase Console Config (замени на свой)
-  firebaseConfig: {
-    apiKey: "ВАШ_API_KEY",
-    authDomain: "ВАШ_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://memorial-bea3c.europe-west1.firebasedatabase.app/",
-    projectId: "ВАШ_PROJECT_ID",
-    storageBucket: "ВАШ_PROJECT_ID.appspot.com",
-    messagingSenderId: "ВАШ_MESSAGING_SENDER_ID",
-    appId: "ВАШ_APP_ID"
-  }
+  // Firebase Console Config 
+firebaseConfig: {
+  apiKey: "AIzaSyCyC6yz9tA_2YU8Mx-7-uu3mO29pcJwvdc",
+  authDomain: "medium-base.firebaseapp.com",
+  databaseURL: "https://medium-base-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "medium-base",
+  storageBucket: "medium-base.firebasestorage.app",
+  messagingSenderId: "929633244970",
+  appId: "1:929633244970:web:ec07f1b3941f028abeb053",
+  measurementId: "G-7LQM9JFRZH" // можно оставить, не мешает
+}
 };
 
 
