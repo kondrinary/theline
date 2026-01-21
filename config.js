@@ -14,12 +14,8 @@ AppConfig.UI = Object.assign(AppConfig.UI || {}, {
 });
 
 // Макс и мин значения коэффициента увеличения элементов интерфейса
-AppConfig.UI.MOBILE_SCALE_MAX = 1.8;
-AppConfig.UI.MOBILE_SCALE_MIN = 1.0;
-
-// ПРАВИЛА
-const ENABLE_SEED = false;   // true = показывать кнопку тестовой записи
-
+const MIN_UI_SCALE = 0.4;
+const MAX_UI_SCALE = 1.2;
 
 // контакты
 const studioName  = "MEDIUM";
@@ -37,147 +33,70 @@ const artist2NameEn = "Andrey Obydennikov";
 // язык по умолчанию
 let CURRENT_LANG = "ru";
 
-const TEXTS = {
+const ENABLE_SEED = false;   // true = показывать кнопку тестовой записи
+
+
+// === тексты (тут как было) ===
+window.TEXTS = {
   ru: {
     addBtn: "запомнить",
     startBtn: "подключиться",
     birthInput: "дата рождения (дд.мм.гггг)",
     deathInput: "дата смерти (дд.мм.гггг)",
     projectTitle: "MEMORIAL",
-    introDesc: "Это звуковой архив дат рождения: вводишь дату — она превращается в цифры, звук и свет и добавляется в общий поток."партитуры\", в которой каждая цифра превращается в звук. И музыка памяти звучит циклично-бесконечно.\n\nОбычно, ритуалы привязаны к месту: в храме мы ставим свечку за упокой, а к памятнику возлагаем цветы. Но цифровой мир сегодня - стал полноправным пространством жизни человека. Мы привыкли к облачному хранению артефактов своей жизни: собираем в метавселенных данные о прошлом, воспоминания и мысли. Но так же, метапространство может стать местом для \"вечной памяти\" потому, что само по себе уже обладает характеристикой вечного. Вечное место для вечной памяти.",
-    playDesc: "Введи дату рождения (дд.мм.гггг) и нажми «запомнить». Дата станет частью общей музыкальной партитуры."побыть внутри памяти\", обнаруживая тело памяти через звук и вступая с памятью в близкий честный контакт.",
-   
-   
- contacts: "проект создан студией цифрового искусства " +
-    "<a class=\"u-link\" href=\"" + studioUrl + "\" target=\"_blank\" rel=\"noopener\">" + studioName + "</a>" +
-  ". художники: " +
-    "<a class=\"u-link\" href=\"" + artist1Url + "\" target=\"_blank\" rel=\"noopener\">" + artist1Name + "</a>" +
-  ", " +
-    "<a class=\"u-link\" href=\"" + artist2Url + "\" target=\"_blank\" rel=\"noopener\">" + artist2Name + "</a>" +
-  ".",
+    introDesc: "Это звуковой архив дат: вводишь даты — они превращаются в цифры, звук и свет и добавляются в общий поток.",
+    playDesc: "Введи даты (дд.мм.гггг), нажми «запомнить». Даты станут частью общей музыкальной партитуры.",
+    okBar: "добавлено",
+    errAudioBlocked: "ваш браузер заблокировал аудио. кликните ещё раз или разрешите звук",
+    errSynthInit: "Ошибка инициализации синтезатора.",
+    errFirebaseInit: "Ошибка инициализации Firebase (config.js).",
 
-// статусные подписи (нейтральные)
-waitingStart: "ожидание запуска. нажмите кнопку подключиться",
-  statusPreparingSound: "готовлю звук",
-  statusSoundReady: "звук готов",
-  statusSubscribing: "подписываюсь на базу данных с датами",
-  statusNoData: "Нет данных для проигрывания. Добавьте дату ниже.",
-  errToneMissing: "Tone.js не загрузился. Проверьте интернет/скрипты.",
-  errAudioBlocked: "ваш браузер заблокировал аудио. кликните ещё раз или разрешите звук",
-  errSynthInit: "Ошибка инициализации синтезатора.",
-  errFirebaseInit: "Ошибка инициализации Firebase (config.js).",
-
-// ошибки валидации формы
-  errBadFormat: "попробуйте еще раз ввести даты в верном формате",
-  errDeathBeforeBirth: "дпопробуйте еще раз ввести даты в верном формате",
-  errWriteFailed: "Ошибка записи. Проверьте соединение/Rules.",
-// чтение из базы
-  dbReadError: "Ошибка чтения из базы",
-// тестовая запись
-  seedAdding: "Пробую добавить тестовую запись…",
-  seedInitFailed: "Firebase не инициализируется. Проверь config.js.",
-  seedAdded: "Тестовая запись добавлена:",
-  seedWriteFailed: "Ошибка записи (Rules/сеть).",
-// воспроизведение
-  nowPlaying: "сейчас звучит ",
-  hz: "Гц",
-  idxLabel: "индекс ",
-  dbCount: "количество дат: {n}",
-  nowPlayingBtn: "кто сейчас звучит?",
-
-// «успех-бар» (белый текст)
-  okBar: "ваша запись добавлена в память цифрового мемориала"
-
+    // ошибки валидации формы
+    errBadFormat: "попробуйте еще раз ввести даты в верном формате",
+    errDeathBeforeBirth: "дпопробуйте еще раз ввести даты в верном формате",
+    errWriteFailed: "Ошибка записи. Проверьте соединение/Rules.",
+    // чтение из базы
+    dbReadError: "Ошибка чтения из базы",
+    // тестовая запись
+    seedAdding: "Пробую добавить тестовую запись…",
+    seedInitFailed: "Firebase не инициализируется. Проверь config.js.",
+    seedAdded: "Тестовая запись добавлена:",
+    seedWriteFailed: "Ошибка записи (Rules/сеть).",
+    nowPlaying: "сейчас играет",
+    hz: "Гц",
+    idxLabel: "индекс"
   },
+
   en: {
-addBtn: "remember",
-startBtn: "connect",
-birthInput: "date of birth (dd.mm.yyyy)",
-deathInput: "date of death (dd.mm.yyyy)",
-projectTitle: "MEMORIAL",
-introDesc: "A sound archive of birth dates: enter a date and it becomes digits, sound and light inside the shared stream."score\" in which each digit turns into a sound. And the music of memory plays cyclically, endlessly.\n\nUsually, rituals are tied to a place: in a church we light a candle for the repose, and at a monument we lay flowers. But today the digital world has become a full-fledged space of human life. We are used to storing the artefacts of our lives in the cloud: we collect data about the past, memories and thoughts in metaverses. Likewise, metaspace can become a place for \"eternal memory\" because it already possesses the characteristic of the eternal. A permanent place for permanent memory.",
-playDesc: "Enter a birth date (dd.mm.yyyy) and press “remember”. The date becomes part of the shared musical score."be inside memory\", discovering the body of memory through sound and entering into a close, honest contact with memory. Not an impulsive contact, but a prolonged contact-presence.",
-   
-contacts: "the project was created by " +
-    "<a class=\"u-link\" href=\"" + studioUrl + "\" target=\"_blank\" rel=\"noopener\">" + studioNameEn + "</a>" +
-  " studio. artists: " +
-    "<a class=\"u-link\" href=\"" + artist1Url + "\" target=\"_blank\" rel=\"noopener\">" + artist1NameEn + "</a>" +
-  ", " +
-    "<a class=\"u-link\" href=\"" + artist2Url + "\" target=\"_blank\" rel=\"noopener\">" + artist2NameEn + "</a>" +
-  ".",
+    addBtn: "remember",
+    startBtn: "connect",
+    birthInput: "date of birth (dd.mm.yyyy)",
+    deathInput: "date of death (dd.mm.yyyy)",
+    projectTitle: "MEMORIAL",
+    introDesc: "A sound archive of dates: enter dates and they become digits, sound and light inside the shared stream.",
+    playDesc: "Enter dates (dd.mm.yyyy) and press “remember”. Dates become part of the shared musical score.",
+    okBar: "saved",
+    errAudioBlocked: "your browser blocked audio. click again or allow sound",
+    errSynthInit: "Synth init error.",
+    errFirebaseInit: "Firebase init error (config.js).",
 
-    // статусные подписи (нейтральные)
-  waitingStart: "waiting to start. press connect-button",
-  statusPreparingSound: "Preparing sound…",
-  statusSoundReady: "Sound is ready.",
-  statusSubscribing: "subscribing to database",
-  statusNoData: "No data to play. Please add a date below.",
-  errToneMissing: "Tone.js did not load. Check internet/scripts.",
-  errAudioBlocked: "Audio was blocked by the browser. Click again or allow sound.",
-  errSynthInit: "Synth initialization error.",
-  errFirebaseInit: "Firebase initialization error (config.js).",
-
-// ошибки валидации формы
-  errBadFormat: "error: format must be DD.MM.YYYY",
-  errDeathBeforeBirth: "error: death date is earlier than birth date.",
-  errWriteFailed: "Write error. Check connection/Rules.",
-// чтение из базы 
-  dbReadError: "Database read error",
-// тестовая запись
-  seedAdding: "Trying to add a test record…",
-  seedInitFailed: "Firebase fails to initialize. Check config.js.",
-  seedAdded: "Test record added:",
-  seedWriteFailed: "Write error (Rules/network).",
-// воспроизведение
-
-  nowPlaying: "now playing",
-  hz: "Hz",
-  idxLabel: "idx",
-  dbCount: "dates in database: {n}",
-nowPlayingBtn: "whо is sounding now?",
-
-
-// «успех-бар» (белый текст)
-  okBar: "your entry has been added to the Digital Memorial's memory"
-
+    errBadFormat: "please enter dates in correct format",
+    errDeathBeforeBirth: "please enter dates in correct format",
+    errWriteFailed: "Write error. Check connection/Rules.",
+    dbReadError: "Database read error",
+    seedAdding: "Trying to add seed…",
+    seedInitFailed: "Firebase init failed. Check config.js.",
+    seedAdded: "Seed added:",
+    seedWriteFailed: "Write error (Rules/network).",
+    nowPlaying: "now playing",
+    hz: "Hz",
+    idxLabel: "idx"
   }
 };
 
 
-
-window.AppConfig = {
-
-
-
-  // Визуальные отступы в правой ленте
-  STREAM_SPACING: {
-    ENABLED: false,      // включить случайный отступ после цифр и точек
-    MIN_CH: 10,        // минимум в ch
-    MAX_CH: 10,        // максимум в ch
-    APPLY_TO: 'digits_and_dots', // 'digits_and_dots' | 'all'
-    NEWLINE_AFTER_PAIR: true      // перенос строки после каждой пары дат
-  },
-
-  CLOCK: {
-    USE_FIREBASE_OFFSET: true,         // .info/serverTimeOffset
-    USE_HTTP_TIME: true,               // HTTP-UTC (worldtimeapi) как второй источник
-    HTTP_URL: 'https://worldtimeapi.org/api/timezone/Etc/UTC',
-    RESYNC_SEC: 60,                    // переоценка HTTP-UTC раз в минуту
-    SLEW_MS: 1500,                     // плавная подстройка offset без скачка
-    JITTER_MS: 8                       // игнорировать шум до ±8 мс
-  },
-
-  // РОВНАЯ СЕТКА (индекс только из времени)
-  SYNC: {
-    GRID_MS: 1000                       // длина шага сетки 
-  },
-
-  // ОКНО АКТИВАЦИИ НОВЫХ ЗАПИСЕЙ (чтобы append был синхронный)
-  WINDOW: {
-    MS: 1000,      // окно 1 секунда
-    DELAY_MS: 200  // защитная задержка на сеть
-  },
-
+// === конфиг приложения (как было) ===
+window.AppConfig = Object.assign(window.AppConfig || {}, {
   // Скорость (влияет на длительность ноты/FX, НЕ на сетку)
   SPEED: 1,
 
@@ -204,7 +123,7 @@ window.AppConfig = {
   // Ветка RTDB
   DB_PATH: 'dates',
 
-  // Firebase Console Config (замени на свой)
+  // Firebase Console Config (Line)
   firebaseConfig: {
     apiKey: "AIzaSyDkQzsSnNP420SyI4KMSxK1xhc9ZoOYK8E",
     authDomain: "thelifeline-ac849.firebaseapp.com",
@@ -215,11 +134,4 @@ window.AppConfig = {
     appId: "1:233108668587:web:80492ef1cf7ff0473af7ee",
     measurementId: "G-LV68Z2VZCH"
   }
-};
-
-
-
-
-
-
-
+});
