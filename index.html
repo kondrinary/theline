@@ -23,35 +23,19 @@
 
 <!-- ПОКАЗЫВАЕМ ОГОНЬ/ШУМ НА ФОНЕ -->
 <iframe id="fireFrame" src="./fire.html" class="bg-flame"></iframe>
-<iframe id="noiseFrame" src="./noise.html" class="bg-flame" style="display:none"></iframe>
 
 
+<!-- Нижняя панель -->
 <div id="left">
+
   <div class="left-inner">
 
-    <!-- Плашка-интро -->
-    <div id="introBox" class="card">
-      <h1 class="title">Название проекта</h1>
-      <p class="desc">
-        Короткое описание проекта в пару строк. Здесь можно объяснить идею и инструкцию.
-      </p>
-    </div>
-
-   
-    <!-- Старт -->
-    <button id="startBtn" type="button">Старт</button>
-
-      <!-- НОВОЕ МЕСТО для карточки контактов -->
-  <div id="contactsCard" class="card card--contacts">
-    <div class="desc" id="contactsCardText"></div>
-  </div>
-
-    <!-- Форма появляется после старта; интро-блок остаётся сверху -->
+    <!-- форма -->
     <div id="formSection">
       <input id="birthInput"  maxlength="10">
       <button id="addBtn" type="button">Добавить</button>
 
-    </div> 
+    </div>
 
 <!-- Полоса ошибки (скрыта) -->
 <div id="errorBar" role="alert" aria-live="polite" hidden></div>
@@ -62,22 +46,7 @@
 
 <div id="status"></div>
 <div id="debugInfo"></div>
-    
-    
-    <!-- КНОПКА ТЕСТОВОЙ ЗАПИСИ (видимость управляем из config.js → ENABLE_SEED) -->
-    <button id="seedBtn" type="button">Добавить тестовую запись</button>
-
-  </div>
-</div>
-
-<div id="dbLeft"  class="debug-side"></div>
-<div id="dbRight" class="debug-side"></div>
-
-<!-- Правая панель: бесконечный поток дат (в одну ленту) -->
-<div id="right">
-  <div id="stream"></div>
-</div>
-
+...
 
 
 
@@ -92,15 +61,8 @@
 <script src="main.js"></script>
 
 <script>
-document.getElementById('startBtn').addEventListener('click', () => {
-  // спрятать огонь
-  document.getElementById('fireFrame').style.display = "none";
-  // показать шум
-  document.getElementById('noiseFrame').style.display = "block";
-});
+document.getElementById('startBtn').addEventListener('click', startApp);
 </script>
-
-
 
 </body>
 </html>
