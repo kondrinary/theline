@@ -10,30 +10,41 @@
   Data.init = function(){
     if (ready) return true;
     try {
-      const cfg =
-        (window.AppConfig && window.AppConfig.firebaseConfig) ||
-        window.firebaseConfig ||
-        (typeof firebaseConfig !== 'undefined' ? firebaseConfig : null);
+      const cfg = (window.AppConfig && window.AppConfig.firebaseConfig);
       if (!cfg) { console.error('[Data.init] firebaseConfig not found'); return false; }
 
-      if (!firebase.apps || firebase.apps.length === 0) {
+      if (!firebase.apps || firebase.apps.length === 0){
         firebase.initializeApp(cfg);
       }
       db = firebase.database();
-
-      const path = (window.AppConfig && AppConfig.DB_PATH) ? AppConfig.DB_PATH : 'dates';
-      datesRef   = db.ref(path);
-      changesRef = db.ref('control/changes'); // журнал смен (ключ — окно k)
+      datesRef = db.ref(AppConfig.DB_PATH || 'dates');
+      changesRef = db.ref((AppConfig.DB_CHANGES_PATH) || 'control/changes');
 
       ready = true;
       return true;
     } catch (e){
-      console.error('[Data.init] Firebase init error:', e);
+      console.error('[Data.init]', e);
       return false;
     }
   };
 
-  // ----- push date -----
+  // ----- «серверные» часы -----
+  let serverOffset = 0;
+  Data.serverNow = function(){ return Date.now() + (serverOffset || 0); };
+
+  Data.initClock = function(){
+    if (!ready && !Data.init()) return;
+    try{
+      db.ref('.info/serverTimeOffset').on('value', (snap)=>{
+        serverOffset = snap.val() || 0;
+      });
+    }catch(e){
+      console.warn('[Data.initClock] fallback to local time', e);
+      serverOffset = 0;
+    }
+  };
+
+  // ----- запись (ТОЛЬКО birth) -----
   Data.pushDate = async function(bDigits){
     if (!ready && !Data.init()) return false;
     try {
@@ -98,157 +109,46 @@
   }
 
   function _emitIfChanged(handler){
-    const list = _filteredByWindow(_rawList);
-    _lastFilteredList = list;
+    const { k } = _windowInfo(Data.serverNow());
+    const filtered = _filteredByWindow(_rawList);
+    const ids = filtered.map(x=>x.id).join(',');
+    if (ids === _lastEmitIds && k === _lastWindowId) return;
 
-    const ids = list.map(x=>x.id).join(',');
-    if (ids !== _lastEmitIds){
-      _lastEmitIds = ids;
-      handler(list);
-    }
+    _lastEmitIds = ids;
+    _lastWindowId = k;
+    _lastFilteredList = filtered.slice();
+    handler(filtered);
   }
 
+  // тикер окна (как было)
+  let _ticker = null;
   function _setupWindowTicker(handler){
-    if (_setupWindowTicker._started) return;
-    _setupWindowTicker._started = true;
-
-    const { MS:WIN_MS } = AppConfig.WINDOW || { MS:1000 };
-    const tick = ()=>{
-      const { k } = _windowInfo(Data.serverNow());
-      if (_lastWindowId === null) _lastWindowId = k;
-      if (k !== _lastWindowId){
-        _lastWindowId = k;
-        _emitIfChanged(handler);
-      }
-      setTimeout(tick, Math.max(100, Math.min(300, WIN_MS/5)));
-    };
-    tick();
+    if (_ticker) return;
+    _ticker = setInterval(()=>{
+      _emitIfChanged(handler);
+    }, 200);
   }
 
-  // ----- change log (идемпотентно) -----
-  Data.announceChange = async function(k, beat, n){
-    if (!ready && !Data.init()) return;
-    try {
-      const ref = changesRef.child(String(k));
-      await ref.transaction(cur => cur || { k, beat, n, ts: firebase.database.ServerValue.TIMESTAMP });
-    } catch(e){
-      /* ignore */
-    }
-  };
-
+  // ----- журнал смен TL (как было) -----
   Data.getChangeLogOnce = async function(){
     if (!ready && !Data.init()) return [];
-    try{
-      const snap = await changesRef.once('value');
-      const val = snap.val() || {};
-      return Object.values(val).sort((a,b)=> (a.k - b.k));
-    }catch(e){
-      console.warn('[Data.getChangeLogOnce]', e);
-      return [];
-    }
+    const snap = await changesRef.once('value');
+    const val = snap.val();
+    if (!val) return [];
+    const arr = Object.values(val);
+    arr.sort((a,b)=> (a.k|0) - (b.k|0));
+    return arr;
   };
 
-  // ----- «серверные» часы: .info + HTTP-UTC с плавной подстройкой -----
-  let offsetRef = null;
-  let _anchorPerfNow = 0, _anchorLocalMs = 0, _anchorOffset0 = 0;
-  let _rawFbOffsetMs = 0, _httpOffsetMs = 0, _stableOffsetMs = 0;
-
-  const CLOCK = (window.AppConfig && AppConfig.CLOCK) || {};
-  const OFFSET_SLEW_MS = CLOCK.SLEW_MS  ?? 1500;
-  const OFFSET_JITTER  = CLOCK.JITTER_MS?? 8;
-  const HTTP_URL       = CLOCK.HTTP_URL || 'https://worldtimeapi.org/api/timezone/Etc/UTC';
-  const RESYNC_MS      = (CLOCK.RESYNC_SEC ?? 60) * 1000;
-
-  function _blend(httpOff, fbOff){
-    if (CLOCK.USE_FIREBASE_OFFSET !== true) return httpOff;
-    if (CLOCK.USE_HTTP_TIME !== true)       return fbOff;
-    return (httpOff + fbOff) / 2;
-  }
-
-  Data.watchServerOffset = function(){
+  Data.announceChange = async function(k, beat, n){
     if (!ready && !Data.init()) return false;
-    if (CLOCK.USE_FIREBASE_OFFSET !== true) return true;
-
-    if (!offsetRef) offsetRef = db.ref('.info/serverTimeOffset');
-    offsetRef.on('value', (snap)=>{
-      const newOff = Number(snap.val() || 0);
-
-      if (_anchorPerfNow === 0){
-        _rawFbOffsetMs  = newOff;
-        _httpOffsetMs   = 0;
-        _stableOffsetMs = newOff;
-
-        _anchorLocalMs  = Date.now();
-        _anchorOffset0  = _stableOffsetMs;
-        _anchorPerfNow  = performance.now();
-        return;
-      }
-
-      const delta = newOff - _rawFbOffsetMs;
-      _rawFbOffsetMs = newOff;
-      if (Math.abs(delta) <= OFFSET_JITTER) return;
-
-      const startPerf = performance.now();
-      const startVal  = _stableOffsetMs;
-      const targetVal = _blend(_httpOffsetMs, _rawFbOffsetMs);
-
-      function _slew(){
-        const t = (performance.now() - startPerf) / OFFSET_SLEW_MS;
-        if (t >= 1){ _stableOffsetMs = targetVal; return; }
-        const k = 1 - Math.pow(1 - t, 3);
-        _stableOffsetMs = startVal + (targetVal - startVal) * k;
-        requestAnimationFrame(_slew);
-      }
-      _slew();
-    });
-    return true;
-  };
-
-  (function httpClockSync(){
-    if (CLOCK.USE_HTTP_TIME !== true) return;
-
-    async function poll(){
-      const t0 = performance.now();
-      try{
-        const resp = await fetch(HTTP_URL, { cache:'no-store' });
-        const t1 = performance.now();
-        const js = await resp.json();
-        const serverUnixMs = (js.unixtime * 1000);
-
-        const mid = (t0 + t1) / 2.0;
-        const localAtMidMs = Date.now() + (mid - t1);
-        const newHttpOffset = serverUnixMs - localAtMidMs;
-
-        _httpOffsetMs = newHttpOffset;
-
-        if (_anchorPerfNow === 0){
-          _stableOffsetMs  = _httpOffsetMs;
-          _anchorLocalMs   = Date.now();
-          _anchorOffset0   = _stableOffsetMs;
-          _anchorPerfNow   = performance.now();
-        } else {
-          const targetVal = _blend(_httpOffsetMs, _rawFbOffsetMs);
-          const startVal  = _stableOffsetMs;
-          const startPerf = performance.now();
-          function _slew(){
-            const t = (performance.now() - startPerf) / OFFSET_SLEW_MS;
-            if (t >= 1){ _stableOffsetMs = targetVal; return; }
-            const k = 1 - Math.pow(1 - t, 3);
-            _stableOffsetMs = startVal + (targetVal - startVal) * k;
-            requestAnimationFrame(_slew);
-          }
-          _slew();
-        }
-      } catch(_){}
-      setTimeout(poll, RESYNC_MS);
+    const key = String(k);
+    try{
+      await changesRef.child(key).set({ k, beat, n });
+      return true;
+    }catch(e){
+      return false;
     }
-    poll();
-  })();
-
-  Data.serverNow = function(){
-    if (_anchorPerfNow === 0) return Date.now();
-    const elapsed = performance.now() - _anchorPerfNow;
-    return _anchorLocalMs + elapsed + (_stableOffsetMs - _anchorOffset0);
   };
 
   window.Data = Data;
