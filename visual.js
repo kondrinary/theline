@@ -1,124 +1,147 @@
-// visual.js — поток дат + таймлайн цифр
+// visual.js — поток дат, синхронизированный с Player (без автопрокрутки)
 (function(){
   const Visual = {};
   Visual.timeline = [];
   Visual.knownIds = new Set();
 
-  function hash32(str){
-    let h = 2166136261;
-    for (let i=0;i<str.length;i++){
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return h >>> 0;
-  }
-  function rand01(seed){
-    let x = seed || 1;
-    x ^= x << 13; x >>>= 0;
-    x ^= x >> 17; x >>>= 0;
-    x ^= x << 5;  x >>>= 0;
-    return (x >>> 0) / 4294967296;
-  }
+  let stream = null; // контейнер для текста справа (#stream)
 
-  function applyDigitSpacing(span, itemId, charIndex){
-    const S = (window.AppConfig && AppConfig.STREAM_SETTINGS) ? AppConfig.STREAM_SETTINGS : null;
-    if (!S) return;
-    const min = Number(S.MIN_CH ?? 0), max = Number(S.MAX_CH ?? 0);
-    if (!(max > min)) return;
-
-    const seed = hash32(itemId + ':' + charIndex);
-    const rnd = rand01(seed);
-    const gap = min + (max - min) * rnd;
-    span.style.marginRight = gap.toFixed(3) + 'ch';
-  }
-
-  // перевод цифры 0..9 -> частота (без изменений)
+  // === перевод цифры 0..9 -> частота ===
   function digitToFreq(d){
     const { FREQ_MIN, FREQ_MAX, PITCH_MODE } = AppConfig;
     if (PITCH_MODE === 'geometric') {
       const ratio = FREQ_MAX / FREQ_MIN;
       return FREQ_MIN * Math.pow(ratio, d / 9);
     }
-    return FREQ_MIN + (FREQ_MAX - FREQ_MIN) * (d / 9);
+    const step = (FREQ_MAX - FREQ_MIN) / 9;
+    return FREQ_MIN + d * step;
   }
 
-  function renderBirthToFragment(item){
-    const birth = (item.birth || '').slice(0,8);
-    const bStr = birth.slice(0,2)+'.'+birth.slice(2,4)+'.'+birth.slice(4);
+// === хелперы для детерминированного «случая» по id записи и индексу символа
+function hash32(str){
+  let h = 2166136261 >>> 0;
+  for (let i=0; i<str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function rand01(seed){
+  // xorshift32
+  let x = seed >>> 0;
+  x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+  return (x >>> 0) / 4294967295;
+}
+function applyRandomGap(span, ch, itemId, charIndex){
+  const S = (window.AppConfig && AppConfig.STREAM_SPACING) || {};
+  if (!S.ENABLED) return;
+  const apply = (S.APPLY_TO === 'all') || (/\d|\./.test(ch));
+  if (!apply) return;
 
-    const text = bStr;
+  const min = Number(S.MIN_CH ?? 0), max = Number(S.MAX_CH ?? 0);
+  if (!(max > min)) return;
 
-    const frag = document.createDocumentFragment();
-    const line = document.createElement('div');
-    line.className = 'stream-line';
-    line.dataset.id = item.id;
+  const seed = hash32(itemId + ':' + charIndex);
+  const rnd = rand01(seed);
+  const gap = min + (max - min) * rnd;
+  span.style.marginRight = gap.toFixed(3) + 'ch';
+}
 
-    const spans = [];
-    for (let i=0;i<text.length;i++){
-      const ch = text[i];
-      const sp = document.createElement('span');
-      sp.className = 'digit';
-      sp.textContent = ch;
-      applyDigitSpacing(sp, item.id, i);
-      spans.push(sp);
-      line.appendChild(sp);
-    }
+// === перевод цифры 0..9 -> частота (без изменений)
+function digitToFreq(d){
+  const { FREQ_MIN, FREQ_MAX, PITCH_MODE } = AppConfig;
+  if (PITCH_MODE === 'geometric') {
+    const ratio = FREQ_MAX / FREQ_MIN;
+    return FREQ_MIN * Math.pow(ratio, d / 9);
+  }
+  const step = (FREQ_MAX - FREQ_MIN) / 9;
+  return FREQ_MIN + d * step;
+}
 
-    frag.appendChild(line);
+// === ОДИН ЭЛЕМЕНТ (пара дат) -> фрагмент и массив цифр (обновлено)
+function renderPairToFragment(item){
+  const bStr = item.birth.slice(0,2)+'.'+item.birth.slice(2,4)+'.'+item.birth.slice(4);
+  const text = `${bStr}.`;
 
-    // только цифры даты рождения
-    const digitsOnly = birth.split('').map(Number);
-    return { frag, spans, text, digitsOnly };
+  const frag  = document.createDocumentFragment();
+  const spans = [];
+  let i = 0;
+
+  for (const ch of text){
+    const s = document.createElement('span');
+    s.textContent = ch;
+
+    if (ch === '.') s.dataset.char = '.';
+    if (/\d/.test(ch)) s.classList.add('digit');
+
+    applyRandomGap(s, ch, item.id, i++);
+    frag.appendChild(s);
+    spans.push(s);
   }
 
+  // Перенос строки после даты, если включено
+  const SP = (window.AppConfig && AppConfig.STREAM_SPACING) || {};
+  if (SP.NEWLINE_AFTER_PAIR) {
+    frag.appendChild(document.createElement('br'));
+  }
+
+  const digitsOnly = (item.birth).split('').map(Number);
+  return { frag, spans, text, digitsOnly };
+}
+
+
+  // Полная отстройка (первый снимок базы)
   Visual.build = function(list){
-    const stream = document.getElementById('stream');
+    if (!stream) stream = document.getElementById('stream');
     if (!stream) return;
 
     stream.innerHTML = '';
     Visual.timeline = [];
-    Visual.knownIds = new Set();
+    Visual.knownIds.clear();
 
     // прямой порядок: старые → новые
     list.forEach(item=>{
       Visual.knownIds.add(item.id);
 
-      const { frag, spans, text, digitsOnly } = renderBirthToFragment(item);
-      stream.appendChild(frag);
+      const { frag, spans, text, digitsOnly } = renderPairToFragment(item);
+      stream.appendChild(frag); // визуально — в конец
 
-      // таймлайн по цифрам в тексте
+      // в таймлайн — только цифры в том же порядке
       let di = 0;
       for (let i=0;i<text.length;i++){
         const ch = text[i];
         if (/\d/.test(ch)){
           const d = digitsOnly[di];
-          const isLast = (di === digitsOnly.length - 1);
-
+          const isLast = (di === digitsOnly.length - 1); // конец пары
           Visual.timeline.push({
-            id: item.id,
-            digitIndex: di,
             digit: d,
             freq: digitToFreq(d),
-            spanEl: spans[i],
-            isLast
+            span: spans[i],
+            pairEnd: isLast
           });
-
           di++;
         }
       }
     });
+
+    if (window.Player && typeof Player.onTimelineChanged === 'function') {
+      Player.onTimelineChanged();
+    }
   };
 
-  Visual.update = function(list){
-    const stream = document.getElementById('stream');
+  // Дозагрузка новых записей (последующие снапшоты)
+  Visual.append = function(list){
+    if (!stream) stream = document.getElementById('stream');
     if (!stream) return;
 
-    // добавляем только новые записи в конец
+    let changed = false;
+
     list.forEach(item=>{
       if (Visual.knownIds.has(item.id)) return;
       Visual.knownIds.add(item.id);
+      changed = true;
 
-      const { frag, spans, text, digitsOnly } = renderBirthToFragment(item);
+      const { frag, spans, text, digitsOnly } = renderPairToFragment(item);
       stream.appendChild(frag);
 
       let di = 0;
@@ -127,24 +150,41 @@
         if (/\d/.test(ch)){
           const d = digitsOnly[di];
           const isLast = (di === digitsOnly.length - 1);
-
           Visual.timeline.push({
-            id: item.id,
-            digitIndex: di,
             digit: d,
             freq: digitToFreq(d),
-            spanEl: spans[i],
-            isLast
+            span: spans[i],
+            pairEnd: isLast
           });
-
           di++;
         }
       }
     });
+
+    if (changed && window.Player && typeof Player.onTimelineChanged === 'function') {
+      Player.onTimelineChanged();
+    }
   };
 
+  let _lastActiveIndex = -1;
+  Visual.setActiveIndex = function(idx){
+    if (!Visual.timeline || !Visual.timeline.length) return;
+    if (_lastActiveIndex === idx) return;
+
+    if (_lastActiveIndex >= 0){
+      const prev = Visual.timeline[_lastActiveIndex];
+      if (prev && prev.span) prev.span.classList.remove('active');
+    }
+    const cur = Visual.timeline[idx];
+    if (cur && cur.span) cur.span.classList.add('active');
+
+    _lastActiveIndex = idx;
+  };
+
+  // Вернёт «снимок» текущего таймлайна (чтобы Player держал активную копию)
   Visual.getTimelineSnapshot = function(){
-    return Visual.timeline.map(x=>({ ...x }));
+    const tl = Visual.timeline || [];
+    return tl.map(x => ({ digit:x.digit, freq:x.freq, span:x.span, pairEnd:x.pairEnd }));
   };
 
   window.Visual = Visual;
