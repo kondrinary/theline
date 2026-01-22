@@ -1,200 +1,165 @@
-// main.js — glue: UI + Data + Visual + Player + Synth
+// main.js — управление UI и взаимодействие с Data/Player/Visual
 (function(){
-  const $ = (id)=>document.getElementById(id);
+  const birthInput   = document.getElementById('birthInput');
+  const startBtn     = document.getElementById('startBtn');
+  const addBtn       = document.getElementById('addBtn');
+  const statusEl     = document.getElementById('status');
+  const rightPane    = document.getElementById('right');
+  const debugInfo    = document.getElementById('debugInfo');
+  const seedBtn      = document.getElementById('seedBtn');
 
-  const startBtn = $('startBtn');
-  const addBtn   = $('addBtn');
-  const birthInput = $('birthInput');
+  // ===== ERROR/OK плашки =====
+  const errorBar = document.getElementById('errorBar');
+  const okBar    = document.getElementById('okBar');
 
-  const formSection = $('formSection');
-  const okBar    = $('okBar');
-  const errorBar = $('errorBar');
-  const introDesc = $('introDesc');
-  const projectTitle = $('projectTitle');
-  const nowPlayInline = $('nowPlayInline');
-
-  const debugInfo = $('debugCenter');
-  const dbLeft = $('dbLeft');
-  const dbRight = $('dbRight');
-
-  // ===== i18n =====
-  function tr(key){
-    const lang = (window.AppConfig && AppConfig.LANG) || 'ru';
-    const dict = (window.AppTexts && AppTexts[lang]) || AppTexts.ru;
-    return (dict && dict[key]) || key;
+  // --- мини-переводчик по ключу из TEXTS ---
+  function tr(key, fallback){
+    const lang = (typeof CURRENT_LANG === 'string' ? CURRENT_LANG : 'ru');
+    const pack = (typeof TEXTS === 'object' && TEXTS[lang]) || {};
+    return (key in pack) ? pack[key] : (fallback ?? key);
   }
 
+  window.tr = tr;                       // чтобы другие модули могли переводить
+  function setDebug(msg){               // единый вывод в панель дебага
+    if (!debugInfo) return;
+    debugInfo.textContent = (msg ?? '');
+  }
+  window.setDebug = setDebug;
+
+  document.documentElement.classList.remove('app-started');
+
+  function showError(msg){
+    if (!errorBar) return;
+    errorBar.textContent = msg;
+    errorBar.hidden = false;
+  }
+  function clearError(){
+    if (!errorBar) return;
+    errorBar.textContent = '';
+    errorBar.hidden = true;
+  }
+  function showOk(msg){
+    if (!okBar) return;
+    okBar.textContent = msg;
+    okBar.hidden = false;
+    setTimeout(()=>{ if (okBar){ okBar.hidden = true; } }, 1200);
+  }
+  function clearOk(){
+    if (!okBar) return;
+    okBar.textContent = '';
+    okBar.hidden = true;
+  }
+
+  // ====== ТЕКСТЫ/КОНТАКТЫ ======
   function applyTexts(){
-    const lang = (window.AppConfig && AppConfig.LANG) || 'ru';
-    const dict = (window.AppTexts && AppTexts[lang]) || AppTexts.ru;
-    if (!dict) return;
+    const L = (TEXTS && TEXTS[CURRENT_LANG]) ? TEXTS[CURRENT_LANG] : (TEXTS && TEXTS.ru) || {};
 
-    if (addBtn) addBtn.textContent = dict.addBtn;
-    if (startBtn) startBtn.textContent = dict.startBtn;
-    if (nowPlayInline) nowPlayInline.textContent = dict.nowPlayInline;
+    const projectTitle = document.getElementById('projectTitle');
+    const introDesc    = document.getElementById('introDesc');
 
-    const bi = $('birthInput');
-    if (bi) bi.placeholder = dict.birthInput;
+    if (projectTitle && L.projectTitle) projectTitle.textContent = L.projectTitle;
+    if (introDesc && L.introDesc) introDesc.textContent = L.introDesc;
 
-    const _deathEl = document.getElementById("deathInput");
-    if (_deathEl) _deathEl.placeholder = dict.deathInput;
+    if (startBtn && L.startBtn) startBtn.textContent = L.startBtn;
+    if (addBtn   && L.addBtn)   addBtn.textContent   = L.addBtn;
 
-    if (projectTitle) projectTitle.textContent = dict.projectTitle;
-    if (introDesc) introDesc.textContent = dict.introDesc;
+    // placeholders
+    if (document.getElementById("birthInput") && L.birthInput){
+      document.getElementById("birthInput").placeholder = L.birthInput;
+    }
 
-    // Контакты (верхняя строка) — собираем тут
-    const C = window.AppContacts || {};
-    const contactsBar = $('contactsBar');
-    if (contactsBar){
-      const make = (name,url)=> url ? `<a class="u-link" href="${url}" target="_blank" rel="noopener noreferrer">${name}</a>` : name;
-      const s = make(C.studioName, C.studioUrl);
-      const a1= make(C.artist1Name, C.artist1Url);
-      const a2= make(C.artist2Name, C.artist2Url);
-      contactsBar.innerHTML = `${s} · ${a1} · ${a2}`;
+    // контакты сверху
+    if (typeof AppContacts === 'function'){
+      const top = document.getElementById('contactsTop');
+      if (top) top.innerHTML = AppContacts(CURRENT_LANG);
     }
   }
 
   applyTexts();
 
-  // ===== UI helpers =====
-  function showOk(text){
-    if (!okBar) return;
-    okBar.textContent = text || tr('okBar');
-    okBar.hidden = false;
-  }
-  function clearOk(){
-    if (!okBar) return;
-    okBar.hidden = true;
-    okBar.textContent = '';
-  }
-  function showError(text){
-    if (!errorBar) return;
-    errorBar.textContent = text || tr('errWriteFailed');
-    errorBar.hidden = false;
-  }
-  function clearError(){
-    if (!errorBar) return;
-    errorBar.hidden = true;
-    errorBar.textContent = '';
+  // ====== форматирование ввода даты: ДД.ММ.ГГГГ ======
+  function formatDateInput(input){
+    if (!input) return;
+    let v = input.value.replace(/\D/g,'').slice(0,8);
+    if (v.length > 4) v = v.slice(0,2) + '.' + v.slice(2,4) + '.' + v.slice(4);
+    else if (v.length > 2) v = v.slice(0,2) + '.' + v.slice(2);
+    input.value = v;
   }
 
-  // Подогнать ширину/отступы ok/error под кнопку справа (как было)
-  function updateBarsGeometry(){
-    const leftInner = document.querySelector('.left-inner');
-    const card = document.querySelector('.card');
-    const btn  = document.getElementById('startBtn');
-    if (!leftInner || !card || !btn) return;
-
-    const innerRect = leftInner.getBoundingClientRect();
-    const cardRect  = card.getBoundingClientRect();
-    const btnRect   = btn.getBoundingClientRect();
-
-    const left = cardRect.left - innerRect.left;
-    const width = (btnRect.left - cardRect.left); // до кнопки
-    document.documentElement.style.setProperty('--bars-left', left + 'px');
-    document.documentElement.style.setProperty('--bars-width', Math.max(0, width) + 'px');
-  }
-
-  window.addEventListener('resize', ()=>updateBarsGeometry());
-  window.addEventListener('load', ()=>updateBarsGeometry());
-
-  // ===== Форматирование ввода ДД.ММ.ГГГГ =====
-  function formatDateInput(el){
-    if (!el) return;
-    let v = el.value.replace(/\D/g,'').slice(0,8);
-    let out = '';
-    if (v.length > 0) out += v.slice(0,2);
-    if (v.length >= 3) out += '.' + v.slice(2,4);
-    if (v.length >= 5) out += '.' + v.slice(4,8);
-    el.value = out;
-  }
   birthInput?.addEventListener('input', ()=>formatDateInput(birthInput));
 
-  // ===== Валидация "ДД.ММ.ГГГГ" =====
   function parseValidDate(str){
+    // строго DD.MM.YYYY
     const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(str);
     if (!m) return null;
-    const [_, dd, mm, yyyy] = m;
-    const d = Number(dd), mo = Number(mm), y = Number(yyyy);
-    if (y < 1800 || y > 2100) return null;
-    if (mo < 1 || mo > 12) return null;
-    if (d < 1 || d > 31) return null;
+    const dd = +m[1], mm = +m[2], yy = +m[3];
 
-    // проверка календаря
-    const dt = new Date(y, mo-1, d);
-    if (dt.getFullYear() !== y || (dt.getMonth()+1) !== mo || dt.getDate() !== d) return null;
-    return dt;
+    // базовые пределы
+    if (yy < 1000 || yy > 2100) return null;
+    if (mm < 1 || mm > 12) return null;
+
+    const d = new Date(yy, mm-1, dd);
+    if (d.getFullYear() !== yy || (d.getMonth()+1) !== mm || d.getDate() !== dd) return null;
+
+    return d;
   }
 
-  // ===== Старт (подключение) =====
-  let started = false;
-
+  // ====== старт/подписка на базу ======
   async function startApp(){
-    if (started) return;
-    started = true;
+    clearError(); clearOk();
+    setDebug('');
 
-    clearOk(); clearError();
-
-    // 1) Tone / Synth
+    // инициализация синта
     try{
-      await Tone.start();
-      Synth.init();
+      if (!window.Synth || typeof Synth.init !== 'function'){
+        showError(tr('errToneMissing'));
+        return;
+      }
+      await Synth.init();
     }catch(e){
-      console.warn('[Tone/Synth]', e);
-    }
-
-    // 2) Firebase init
-    const okInit = Data.init();
-    if (!okInit){
-      showError(tr('errFirebase'));
+      console.error(e);
+      showError(tr('errSynthInit'));
       return;
     }
 
-    // 3) UI: показать форму, скрыть кнопку
-    if (formSection) formSection.style.display = 'flex';
-    if (startBtn) startBtn.style.display = 'none';
+    // инициализация Firebase
+    const okInit = Data.init();
+    if (!okInit){
+      showError(tr('errFirebaseInit'));
+      return;
+    }
+
     document.documentElement.classList.add('app-started');
 
-    updateBarsGeometry();
+    // включаем форму
+    const form = document.getElementById('formSection');
+    if (form) form.style.display = 'flex';
 
-    // 4) подписка на данные
+    // подписка
+    setDebug(tr('subscribing', 'подключение к базе...'));
     Data.subscribe((list)=>{
-      // Visual.build делает полный rebuild (чтобы совпадало с тем, что было)
+      setDebug('');
       Visual.build(list);
-      if (debugInfo){
-        debugInfo.textContent = `${list.length} записей`;
-      }
+      Player.setTimeline(Visual.timeline);
+      Player.ensurePlaying();
     }, (err)=>{
-      showError(tr('errFirebase'));
-      if (debugInfo) debugInfo.textContent = 'ошибка';
       console.error(err);
+      showError(tr('dbReadError', 'Database read error'));
     });
 
-    // 5) Player
-    if (window.Player){
-      Player.init({
-        onDigit: (digit, freq, span)=>{
-          // звучим
-          const len = 0.12; // длина атаки в сек (корпус сам живёт через env)
-          Synth.trigger(freq, len, 0.7, null, digit);
-        },
-        onIndex: (idx)=> Visual.setActiveIndex(idx)
-      });
-      Player.play();
+    // кнопка seed (если выключено — спрячем)
+    if (seedBtn){
+      seedBtn.style.display = (typeof ENABLE_SEED === 'boolean' && ENABLE_SEED) ? 'inline-flex' : 'none';
     }
 
-    // 6) debug “ушки”
-    if (dbLeft) dbLeft.textContent = tr('playDesc');
-    if (dbRight){
-      dbRight.textContent = ENABLE_SEED ? tr('seedBtn') : '';
-      dbRight.style.display = ENABLE_SEED ? 'block' : 'none';
-    }
+    // фокус на ввод
+    setTimeout(()=>birthInput?.focus(), 100);
   }
 
   startBtn?.addEventListener('click', startApp);
 
-  // ===== Добавление записи =====
-addBtn.addEventListener('click', async ()=>{
+  // ====== добавить дату (только рождение) ======
+  addBtn.addEventListener('click', async ()=>{
     const bStr = birthInput.value.trim();
 
     clearError(); clearOk();
@@ -222,73 +187,35 @@ addBtn.addEventListener('click', async ()=>{
     }
   });
 
-  // ====== КНОПКА «Тестовая запись» (если включено) ======
+  // ====== КНОПКА «Тестовая запись» ======
   const SEED_PRESETS = [
     { b:'01011990' },
     { b:'15071985' },
     { b:'31121970' },
     { b:'03031999' }
   ];
-  let _seedIndex = 0;
+  let seedIndex = 0;
 
-  async function doSeed(){
-    if (!ENABLE_SEED) return;
-    const preset = SEED_PRESETS[_seedIndex % SEED_PRESETS.length];
-    _seedIndex++;
+  if (seedBtn){
+    seedBtn.addEventListener('click', async ()=>{
+      if (debugInfo) debugInfo.textContent = tr('seedAdding');
 
-    try{
+      const okInit = Data.init();
+      if (!okInit){
+        if (debugInfo) debugInfo.textContent = tr('seedInitFailed');
+        return;
+      }
+
+      const preset = SEED_PRESETS[seedIndex % SEED_PRESETS.length];
+      seedIndex++;
+
       const okPush = await Data.pushDate(preset.b);
       if (okPush){
         if (debugInfo) debugInfo.textContent = `${tr('seedAdded')} ${preset.b}`;
-      }else{
-        showError(tr('errWriteFailed'));
+      } else {
+        if (debugInfo) debugInfo.textContent = tr('seedWriteFailed');
       }
-    }catch(e){
-      console.error(e);
-      showError(tr('errWriteFailed'));
-    }
+    });
   }
-
-  dbRight?.addEventListener('click', doSeed);
-
-  // ===== кнопка «как это звучит?» =====
-  nowPlayInline?.addEventListener('click', ()=>{
-    // проигрываем короткий пример: 0123456789 (как раньше было — просто демо)
-    try{
-      if (!window.Synth || !window.Synth.fx) Synth.init();
-      const seq = [0,1,2,3,4,5,6,7,8,9];
-      let t = Tone.now() + 0.05;
-      seq.forEach(d=>{
-        const freq = (()=>{
-          const { FREQ_MIN, FREQ_MAX, PITCH_MODE } = AppConfig;
-          if (PITCH_MODE === 'geometric') {
-            const ratio = FREQ_MAX / FREQ_MIN;
-            return FREQ_MIN * Math.pow(ratio, d / 9);
-          }
-          const step = (FREQ_MAX - FREQ_MIN) / 9;
-          return FREQ_MIN + d * step;
-        })();
-        Synth.trigger(freq, 0.12, 0.6, t, d);
-        const dt = AppConfig.NOTE_DELAY_MIN + (AppConfig.NOTE_DELAY_MAX - AppConfig.NOTE_DELAY_MIN) * (d/9);
-        t += dt;
-      });
-    }catch(e){
-      console.warn(e);
-    }
-  });
-
-  // ===== Периодическое обновление количества записей =====
-  let _countTimer = null;
-  async function refreshCount(){
-    if (!Data || !Data.getCount) return;
-    const n = await Data.getCount();
-    if (n == null) return;
-    if (debugInfo) debugInfo.textContent = `${n} записей`;
-  }
-  window.addEventListener('load', ()=>{
-    if (AppConfig?.UI?.DB_COUNT_REFRESH_MS){
-      _countTimer = setInterval(refreshCount, AppConfig.UI.DB_COUNT_REFRESH_MS);
-    }
-  });
 
 })();
