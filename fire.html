@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Unicode Flame — size min + coeff</title>
 <style>
-  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  html,body{margin:0;height:100%;background:#0025FF;overflow:hidden}
   canvas{display:block;width:100vw;height:100vh}
 </style>
 <canvas id="c"></canvas>
@@ -144,7 +144,7 @@ function hash(i,j,k=0){ let n=(i*73856093)^(j*19349663)^(k*83492791); n=(n<<13)^
 
 function draw(tms){
   const t=tms/1000;
-  ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="#0025FF"; ctx.fillRect(0,0,W,H);
   ctx.fillStyle=FG;
   const kt=Math.floor(t*NOISE_SPEED*60);
 

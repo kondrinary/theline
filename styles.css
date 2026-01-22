@@ -2,8 +2,8 @@
 :root{
   --ui-scale: 1.0;                 /* 0…2 — общий масштаб UI */
   --intro-top: 30vh;               /* верх плашки от окна */
-  --page-bg: rgb(0,0,255);                 /* фон страницы */
-  --card-bg: rgba(0,0,255,0.82);            /* фон плашки-описания */
+  --page-bg: #0025FF;                 /* фон страницы */
+  --card-bg: #0025FFD0;            /* фон плашки-описания */
   --text-color: #fff;              /* общий цвет текста */
   --text-muted: #424242;           /* приглушённый текст */
   --stream: #ffffff;
@@ -40,7 +40,7 @@
 
   /* кнопки (кроме кнопки языка) */
   --btn-bg:  #fff;
-  --btn-fg:  rgb(0,0,255);
+  --btn-fg:  #0025FF;
   --btn-h:   calc(34px * var(--ui-scale));
   --btn-pad-x: calc(14px * var(--ui-scale));
   --btn-radius: 0px;
@@ -55,7 +55,7 @@
 
   /* нижняя плашка  */
   --bottom-panel-h: 34vh;     /* высота нижней фиксированнной панели */
-  --bottom-panel-bg: rgb(0,0,255);    /* цвет фона панели */
+  --bottom-panel-bg: #0025FF;    /* цвет фона панели */
 
   --error-dusty-red: #a93f3f;   /* цвет текста ошибки */
   --ok-text: var(--text-color); /* белый текст успеха по умолчанию */
@@ -245,7 +245,7 @@ button:focus-visible{
 }
 
 /* поля ввода */
-#birthInput{
+#birthInput,#deathInput{
   flex: 1 1 0;           /* было 0 1 160px */
   min-width: 140px;      /* чтобы не сжимались в ноль */
   max-width: none;       /* снимем ограничение 180px */
@@ -258,7 +258,7 @@ button:focus-visible{
   border: none;
   font-family:var(--font-ui); font-size:var(--input-font);
   font-weight:var(--font-weight);
-  color:#fff; background:rgb(0,0,255);
+  color:#fff; background:#0025FF;
   border-radius:0;
 
   /* белая «обводка» через inset-тень (стандарт) */
@@ -266,7 +266,7 @@ button:focus-visible{
 }
 /* плейсхолдеры явно видимые */
 #birthInput::placeholder,
-#birthInput::placeholder{
+#deathInput::placeholder{
   color: rgba(174, 174, 174, 0.75);
   opacity: 1; /* Safari */
 }
@@ -294,7 +294,7 @@ button:focus-visible{
   right: var(--debug-right-reserve, 0px);
 
   height: var(--contacts-h);
-  background: rgb(0,0,255);
+  background: #0025FF;
   color: var(--text-color);
   font-size: var(--contacts-size);
   font-weight: var(--font-weight);
@@ -316,7 +316,7 @@ button:focus-visible{
   min-height: var(--contacts-h);
   padding: 4px 12px;
   background: #fff;       /* белый фон */
-  color: rgb(0,0,255);            /* чёрный текст */
+  color: #0025FF;            /* чёрный текст */
   font-size: var(--contacts-size);
   font-weight: 100;
   line-height: var(--contacts-wrap-lh);
@@ -420,7 +420,7 @@ button:focus-visible{
   top: var(--debug-top);
   left: 0; right: 0;
   height: var(--contacts-h);      /* по умолчанию одна строка */
-  background: rgb(0,0,255);
+  background: #0025FF;
   z-index: 1000;
 }
 
