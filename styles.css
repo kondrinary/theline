@@ -1,143 +1,83 @@
-/* ========== НАСТРОЙКИ (меняй тут) ========== */
 :root{
-  --ui-scale: 1.0;                 /* 0…2 — общий масштаб UI */
-  --intro-top: 30vh;               /* верх плашки от окна */
-  --page-bg: rgb(0,0,255);               /* фон страницы */
+  --page-bg: rgb(0,0,255);                 /* фон страницы */
   --card-bg: #0000ffd0;            /* фон плашки-описания */
-  --text-color: #fff;              /* общий цвет текста */
-  --text-muted: #424242;           /* приглушённый текст */
-  --stream: #ffffff;
-  --accent: #61e635;               /* активные цифры */
-
-  /* внутренняя обводка (стандартизированная для всех UI) */
-  --stroke-color: #fff;
+  --stroke-color: rgba(255,255,255,0.18);
   --stroke-size: 1px;
+  --btn-h: 42px;
+  --row-gap: 8px;
+  --stack-gap: 14px;
+  --panel-maxw: 520px;
 
-  /* шрифт */
-  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "Cascadia Code", Menlo, Consolas, monospace;
-
-  /* общий шаг между символами даты */
-  --char-gap: 1%;
-  /* интервалы вокруг точки (до и после) */
-  --dot-gap-before: 2%;
-  --dot-gap-after: 2%;
-
-  /* размеры шрифтов */
-  --text-size:    calc(14px * var(--ui-scale));  /* описание/кнопки/общий текст */
-  --title-size:   calc(20px * var(--ui-scale));  /* заголовок проекта */
-  --contacts-size:calc(14px * var(--ui-scale));  /* верхняя строка «Контакты» */
-  --input-font:   calc(14px * var(--ui-scale));  /* шрифт инпутов */
-
-  /* веса шрифтов */
-  --font-weight: 260;            /* общий вес текста/кнопок/форм/контактов */
-  --title-weight: 600;           /* вес заголовка */
-
-  /* габариты панели/отступы */
-  --panel-maxw: calc(800px * var(--ui-scale));
-  --stack-gap:  calc(4px * var(--ui-scale));
-  --row-gap:    calc(4px * var(--ui-scale));
-
-  /* кнопки (кроме кнопки языка) */
-  --btn-bg:  #fff;
   --btn-fg:  rgb(0,0,255);
-  --btn-h:   calc(34px * var(--ui-scale));
-  --btn-pad-x: calc(14px * var(--ui-scale));
-  --btn-radius: 0px;
-  --start-w: calc(140px * var(--ui-scale));
-  --btn-hover: #e6e6e6;
-  --btn-active:#cfcfcf;
-  --btn-scale-active: .985;
+  --btn-bg:  #fff;
+  --btn-bg2: rgba(255,255,255,0.92);
 
-  /* верхняя плашка  */
-  --contacts-h: 20px;
-  --contacts-current-h: var(--contacts-h); /* фактическая высота контактов (JS обновит при необходимости) */
-
-  /* нижняя плашка  */
-  --bottom-panel-h: 34vh;     /* высота нижней фиксированнной панели */
   --bottom-panel-bg: rgb(0,0,255);    /* цвет фона панели */
 
-  --error-dusty-red: #a93f3f;   /* цвет текста ошибки */
-  --ok-text: var(--text-color); /* белый текст успеха по умолчанию */
-
-  --flag-top: 12px;          /* отступ кнопки языка от верха */
-  --flag-right: 12px;        /* отступ кнопки языка от правого края */
-
-  --brand-top: 12px;         /* «МЕМОРИАЛ» — отступ сверху */
-  --brand-left: 16px;        /* «МЕМОРИАЛ» — отступ слева */
-
-  --desc-lh: 1.1;              /* межстрочный у описания (меняешь тут) */
-  --card-pad-x: 10px;         /* паддинги описания слева/справа */
-  --card-pad-y: 10px;        /* паддинги описания сверху/снизу */
-
-  --contacts-wrap-lh: 1;     /* межстрочный у контактов на узких экранах */
-  --contacts-extra-pad: 56px;/* запас под авто-перенос контактов (см. #right) */
-
-  /* отступы «ушей» у дебага */
-  --debug-left-pad: 20px;
-  --debug-right-pad: 20px;
-
-  --debug-top: 20px;           /* вертикальное смещение debug-строки и «ушей» */
-  --debug-min-gap: 16px;      /* мин. зазор между ушами и центральным текстом */
+  --bottom-panel-h: 78px;
+  --contacts-h: 46px;
+  --contacts-extra-pad: 26px;
 }
-/* =========================================== */
 
+*{ box-sizing:border-box; }
 
-.u-link {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: #fff;
-  text-underline-offset: 2px;
-}
-.u-link:hover { opacity: .85; }
-.u-link:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-
-
-/* базовые */
-*{ box-sizing:border-box }
-html,body{ height:100% }
-body{
+html,body{
   margin:0;
-  background:var(--page-bg);
-  color:var(--text-color);
-  font-size:var(--text-size);
-  font-weight:var(--font-weight);
-  display:flex; height:100vh; overflow:hidden;
+  padding:0;
+  height:100%;
+  font-family:'Inter',system-ui,Segoe UI,Arial,sans-serif;
+  color:#fff;
+  background: rgb(0,0,255);
 }
 
-/* Включаем табличные цифры и линейные формы везде, где есть текст/цифры */
-html, body {
-  font-family: var(--font-ui);
-  font-feature-settings: "tnum" 1, "lnum" 1;
-  font-variant-numeric: tabular-nums lining-nums;
+#contactsTop{
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 50;
+  padding: 10px 18px;
+  pointer-events: none;
 }
 
-/* фон (ифреймы) */
-.bg-flame{
-  position:fixed; inset:0; width:100%; height:100%;
-  border:0; background:transparent; z-index:2; pointer-events:none;
+#contactsTop .contacts{
+  pointer-events: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 1.2;
+  opacity: 0.95;
 }
 
-/* колонки */
-#left,#right{ height:100vh }
+#contactsTop a{
+  color: #fff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.45);
+}
 
-/* НИЖНЯЯ ПАНЕЛЬ (бывш. #left) */
+#container{
+  position: relative;
+  z-index: 20;
+}
+
 #left{
   position: fixed;
-  left: 0; right: 0; bottom: 0;
-  height: var(--bottom-panel-h);
-  z-index: 900;
-  background: var(--bottom-panel-bg);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 10px;
-  pointer-events: auto;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 48%;
+  min-width: 360px;
+  max-width: 720px;
+  z-index: 30;
+  padding: 24px;
+  padding-top: calc(var(--contacts-h) * 2 + 8px);
+  overflow: hidden;
+  pointer-events: none;
 }
 
-/* NEW: .left-inner — grid с 2 колонками:
-   кол.1 — контент (.card), кол.2 — узкая колонка под кнопку «Подключиться».
-   Когда формы видимы, #formSection занимает верхнюю строку на обе колонки. */
+/* #formSection занимает верхнюю строку на обе колонки. */
 .left-inner{
   position: relative;
   width: 100%;
@@ -156,87 +96,90 @@ html, body {
 
 #right{
   position: fixed; inset: 0;
-  z-index: 10; /* ниже нижней панели */
+  z-index: 10;
   padding: 24px;
   padding-bottom: calc(var(--bottom-panel-h) + var(--contacts-extra-pad));
-  padding-top: calc(var(--contacts-h) * 2 + 8px); /* контакты + дебаг */
+  padding-top: calc(var(--contacts-h) * 2 + 8px);
   overflow: auto;
+}
+
+#stream{
+  margin-left: 52%;
+  min-width: 320px;
+  font-size: 18px;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  white-space: normal;
+  word-break: break-word;
+  user-select: none;
+}
+
+.line{
+  margin: 0;
+  padding: 0;
 }
 
 /* плашка-интро (описание) */
 .card{
   background:var(--card-bg);
   box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color);
-  border-radius:0;
-  padding: 0 var(--card-pad-x) var(--card-pad-y) var(--card-pad-x); 
-  grid-column: 1; /* слева */
-  /* NEW: внутри .card делаем "тайтл | описание" в одну строку по верху */
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-columns: auto 1fr; /* [title] [desc] */
-  align-items: start;
-  column-gap: var(--stack-gap);
-
-  text-align: justify;  
-}
-.card .title{
-  margin:10px 10px 6px 0; color:var(--text-color);
-  font-size:var(--title-size); font-weight:var(--title-weight);
-}
-.card .desc{
-  margin: 10px; color:var(--text-color);
-  font-size:var(--text-size); font-weight:var(--font-weight);
-  line-height:var(--desc-lh);
+  border-radius: 16px;
+  padding: 18px 16px 14px;
 }
 
-/* общие кнопки (кроме флага) */
+.card h1{
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+}
+
+.card p{
+  margin: 0 0 14px 0;
+  font-size: 12px;
+  opacity: 0.92;
+  white-space: pre-line;
+}
+
+/* кнопки */
 button{
-  appearance:none; border:none; border-radius:var(--btn-radius);
-  background:var(--btn-bg); color:var(--btn-fg);
-  font-family:var(--font-ui); font-size:var(--text-size);
-  font-weight:var(--font-weight);
-  cursor:pointer;
-  box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color); /* стандартизированная белая обводка */
-  transition: background-color .15s ease, transform .06s ease;
-}
-button:hover{ background:var(--btn-hover) }
-button:active{ background:var(--btn-active); transform:scale(var(--btn-scale-active)) }
-button:focus{ outline:none }
-button:focus-visible{
-  box-shadow:
-    inset 0 0 0 var(--stroke-size) var(--stroke-color),
-    0 0 0 2px rgba(255,255,255,.18);
+  height: var(--btn-h);
+  border: none;
+  border-radius: 999px;
+  padding: 0 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
 }
 
-/* «Подключиться»: в ПРАВОЙ колонке той же строки, что и .card */
+button:hover{
+  background: var(--btn-bg2);
+}
+
+/* startBtn */
 #startBtn{
-  display:block; width:var(--start-w);
-  height:var(--btn-h); line-height:var(--btn-h);
-  padding:0 var(--btn-pad-x);
-  margin:0;
-  position: static; top: auto; z-index: auto;
-  grid-column: 2;   /* правая колонка */
-  align-self: start;
-  justify-self: start;
+  width: 100%;
 }
 
-/* форма (скрыта до старта) — при показе занимает ВЕРХНИЙ РЯД на всю ширину
-   и прилипает к верхнему краю панели */
+/* форма ввода: появляется после старта */
 #formSection{
-  display:none;                 /* включит main.js после старта */
+  display:none;
   flex-direction:row;
   gap:var(--row-gap);
   width:100%;
   flex-wrap:nowrap;
-  grid-column: 1 / -1;          /* занять обе колонки сверху */
+  grid-column: 1 / -1;
   position: sticky;
   top: 0;
   z-index: 2;
-  background: var(--bottom-panel-bg); /* не просвечивать при скролле */
+  background: var(--bottom-panel-bg);
   padding-top: 0px;
   padding-bottom: var(--stack-gap);
-  order: -1; /* показываем форму выше .card, когда она видима */
-  align-items: center; /* центр по вертикали в ряду */
+  order: -1;
+  align-items: center;
 }
 
 /* поля ввода */
@@ -247,253 +190,85 @@ button:focus-visible{
   height:var(--btn-h);
   padding:0 8px;
 
-  /* типографика */
   -webkit-appearance: none;
   appearance: none;
   border: none;
-  font-family:var(--font-ui); font-size:var(--input-font);
-  font-weight:var(--font-weight);
-  color:#fff; background: rgb(0,0,255);
-  border-radius:0;
+  border-radius: 10px;
+  outline: none;
 
-  /* белая «обводка» через inset-тень (стандарт) */
-  box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color);
+  background: rgba(255,255,255,0.92);
+  color: rgb(0,0,255);
+  font-size: 13px;
+  letter-spacing: 0.02em;
 }
-/* плейсхолдеры явно видимые */
+
+#birthInput:focus{
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.45);
+}
+
 #birthInput::placeholder{
   color: rgba(174, 174, 174, 0.75);
-  opacity: 1; /* Safari */
 }
 
-/* кнопки в строке формы — одинаковые габариты */
-#addBtn,
-#nowPlayInline{
-  flex:0 0 auto;
-  height:var(--btn-h);
-  padding:0 var(--btn-pad-x);
-  border-radius:0;
-  white-space:nowrap; /* текст не переносится => высота фиксированная */
+/* addBtn */
+#addBtn{
+  flex: 0 0 auto;
+  min-width: 110px;
 }
 
-/* кнопка «Добавить» — прижать к правому краю строки формы */
-#addBtn{ margin-left: auto; }
+/* подсветка активной цифры */
+#stream span.active{
+  color: #00ff00;
+}
 
-/* статус/отладка */
-#status{ font-size:var(--text-size); color:var(--text-color); font-weight:var(--font-weight) }
-#debugInfo{
+/* error/ok */
+#errorBar, #okBar{
   position: fixed;
-  top: var(--debug-top);
-  left:  var(--debug-left-reserve, 0px);
-  right: var(--debug-right-reserve, 0px);
-
-  height: var(--contacts-h);
-  background: rgb(0,0,255);
-  color: var(--text-color);
-  font-size: var(--contacts-size);
-  font-weight: var(--font-weight);
-  line-height: var(--contacts-h);
-  text-align: center;
-  z-index: 1000;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* плашка «Контакты» */
-#contactsBar{
-  position: fixed;
-  left: 0; right: 0;
-  top: 0;
-  bottom: auto;
-  min-height: var(--contacts-h);
-  padding: 4px 12px;
-  background: #fff;       /* белый фон */
-  color: rgb(0,0,255);            /* синий текст */
-  font-size: var(--contacts-size);
-  font-weight: 100;
-  line-height: var(--contacts-wrap-lh);
-  text-align: center;
-  white-space: normal;
-  word-break: break-word;
-  z-index: 1050;
-}
-
-/* поток дат */
-#stream{
-  max-width:100%; margin:0 auto; text-align:center;
-  white-space:nowrap; word-break:keep-all; color:var(--text-color);
-  overflow-x:auto;
-  font-weight:var(--font-weight);
-}
-#stream .digit{ color:var(--stream); display:inline-block; padding-right: var(--char-gap); }
-#stream .digit.active{ color:var(--accent) }
-
-/* СПЕЦ. ПРАВИЛА ДЛЯ ТОЧКИ */
-#stream [data-char="."]{
-  display:inline-block;
-  padding-right: var(--dot-gap-after);
-  margin-left:  var(--dot-gap-before);
-}
-
-/* Полоса ошибки/успеха — самостоятельный блок между формой и описанием */
-#okBar, #errorBar{
-  display: block;
-  position: relative;
-  grid-column: 1 / -1;
-
-  width: var(--bars-width, 100%);
-  margin-left: var(--bars-left, 0px);
-
-  box-sizing: border-box;
-  margin-top: 0px; margin-bottom: 6px;
+  left: 24px;
+  bottom: 18px;
+  z-index: 60;
+  max-width: 520px;
   padding: 10px 12px;
-
-  box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color);
-  border-radius: 0;
-
-  background: var(--bottom-panel-bg);
-  color: var(--text-color);
-}
-/* скрываем ТОЛЬКО когда есть [hidden] */
-#okBar[hidden], #errorBar[hidden]{ display: none !important; }
-
-#errorBar{ color: var(--error-dusty-red); }
-#okBar{    color: var(--ok-text); }
-
-/* «уши» у дебага */
-.debug-side{
-  position: fixed;
-  top: var(--debug-top);
-  height: var(--contacts-h);
-  line-height: var(--contacts-h);
-  z-index: 1050;
-  font-size: var(--contacts-size);
-  color: var(--text-color, #fff);
-  background: transparent;
-  pointer-events: auto;
-  user-select: none;
-}
-#dbLeft{  left: var(--debug-left-pad); }
-#dbRight{ right: var(--debug-right-pad); cursor: pointer; text-decoration: underline; }
-
-/* Кнопка смены языка как подчёркнутая ссылка в верхней строке (в разметке удалена, правило оставляем на случай старых билдов) */
-#langBtn{ display: none !important; }
-
-/* центральная строка дебага не налезает на уши */
-#debugInfo{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* когда совсем тесно — разрешаем скролл по X у центрального текста */
-.debug-tight #debugInfo{
-  overflow-x: auto;
-  text-overflow: clip;
-  cursor: ew-resize;
-}
-
-
-:root{
-  --contacts-h: 20px;
-  --debug-top: 0px;
-  --debug-breakpoint: 680px;
-  --debug-side-pad: 12px;
-}
-
-/* ЧЕРНАЯ ПОЛОСА ВСЕГДА НА ВЕСЬ ЭКРАН */
-#debugInfo{
-  position: fixed;
-  top: var(--debug-top);
-  left: 0; right: 0;
-  height: var(--contacts-h);
-  background: rgb(0,0,255);
-  z-index: 1000;
-}
-
-/* Внутри неё — центрируем сам текст дебага простым способом */
-#debugInfo .di-center{
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  height: var(--contacts-h);
-  line-height: var(--contacts-h);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: calc(100% - 2 * 140px);
-  text-align: center;
+  border-radius: 12px;
+  font-size: 12px;
   pointer-events: none;
-  color: var(--text-color);
-  font-size: var(--contacts-size);
+  white-space: pre-line;
 }
 
-/* УСЫ — как были: по краям верхней строки */
-.debug-side{
-  position: fixed;
-  top: var(--debug-top);
-  height: var(--contacts-h);
-  line-height: var(--contacts-h);
-  z-index: 1050;
-  font-size: var(--contacts-size);
-  color: var(--text-color, #fff);
-  background: transparent;
+#errorBar{
+  background: rgba(255,255,255,0.92);
+  color: rgb(0,0,255);
+}
+
+#okBar{
+  background: rgba(255,255,255,0.92);
+  color: rgb(0,0,255);
+}
+
+/* debug */
+#debugInfo{
+  margin-top: 10px;
+  font-size: 11px;
+  opacity: 0.75;
   pointer-events: auto;
-  user-select: none;
 }
-#dbLeft  { left:  var(--debug-side-pad); }
-#dbRight { right: var(--debug-side-pad); cursor: pointer; text-decoration: underline; }
 
-/* УЗКОЕ ОКНО → ДВЕ СТРОКИ */
-@media (max-width: 680px){
-  #debugInfo{ height: calc(var(--contacts-h) * 2); }
-  #debugInfo .di-center{
-    top: var(--contacts-h);
-    left: auto;
-    right: var(--debug-side-pad);
-    transform: none;
-    max-width: calc(100% - 2 * var(--debug-side-pad));
-    text-align: right;
-    pointer-events: auto;
+/* seed btn */
+#seedBtn{
+  display: none;
+  margin-top: 10px;
+  pointer-events: auto;
+}
+
+/* адаптив */
+@media (max-width: 880px){
+  #left{
+    width: 100%;
+    max-width: none;
+    min-width: 0;
   }
-}
-
-/* важное: чтобы контент под полосой не прятался — отступ сверху у правой панели */
-#right{
-  padding-top: calc(var(--contacts-h) + 8px);
-}
-@media (max-width: 680px){
-  #right{
-    padding-top: calc(var(--contacts-h) * 2 + 8px);
+  #stream{
+    margin-left: 0;
+    padding-top: 28px;
   }
-}
-
-/* Карточка "Контакты" — такая же как описание, слева, на всю ширину колонки */
-.card--contacts{
-  grid-column: 1;
-  background: var(--card-bg);
-  box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color);
-  border-radius: 0;
-  padding: var(--card-pad-y) var(--card-pad-x);
-  margin-top: calc(-1 * var(--stack-gap));
-  position: relative;
-  z-index: 2;
-}
-
-/* после старта (экран дат) */
-html.app-started .card--contacts{
-  margin-top: calc(-1 * var(--stack-gap));
-}
-
-/* текст внутри — как у описания */
-.card--contacts .desc{
-  margin: 0;
-  color: var(--text-color);
-  font-size: var(--text-size);
-  font-weight: var(--font-weight);
-  line-height: var(--desc-lh);
-  white-space: normal;
-  word-break: break-word;
 }
