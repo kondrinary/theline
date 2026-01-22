@@ -1,99 +1,77 @@
 // data.js — работа с Firebase RTDB (compat)
-(function(){
-  const Data = {};
+const Data = (function(){
   let db = null;
+  let datesRef = null;
+  let changesRef = null;
+  let ready = false;
 
   Data.init = function(){
-    try{
-      if (!firebase.apps.length){
-        firebase.initializeApp(AppConfig.firebaseConfig);
+    if (ready) return true;
+    try {
+      const cfg =
+        (window.AppConfig && window.AppConfig.firebaseConfig) ||
+        window.firebaseConfig ||
+        (typeof firebaseConfig !== 'undefined' ? firebaseConfig : null);
+      if (!cfg) { console.error('[Data.init] firebaseConfig not found'); return false; }
+
+      if (!firebase.apps || firebase.apps.length === 0) {
+        firebase.initializeApp(cfg);
       }
       db = firebase.database();
+
+      const path = (window.AppConfig && AppConfig.DB_PATH) ? AppConfig.DB_PATH : 'dates';
+      datesRef   = db.ref(path);
+      changesRef = db.ref('control/changes'); // журнал смен (ключ — окно k)
+
+      ready = true;
       return true;
-    }catch(e){
-      console.error('[Data.init]', e);
+    } catch (e){
+      console.error('[Data.init] Firebase init error:', e);
       return false;
     }
   };
 
-  // Возвращает { birth:"DDMMYYYY", digits:[...], ts:number, id:string }
+  // ----- push date (ТОЛЬКО BIRTH) -----
   Data.pushDate = async function(bDigits){
-    try{
-      if (!db) return false;
-      const refDates = db.ref(AppConfig.DB_PATH);
-      const refNew = refDates.push();
-      const payload = {
-        birth: String(bDigits),
-        digits: String(bDigits).split('').map(x=>+x),
-        ts: firebase.database.ServerValue.TIMESTAMP
-      };
-      await refNew.set(payload);
+    if (!ready && !Data.init()) return false;
+    try {
+      const digits = (bDigits).split('').map(n => +n);
+      await datesRef.push({
+        birth: bDigits,
+        digits,
+        ts: firebase.database.ServerValue.TIMESTAMP  // важно для окна
+      });
       return true;
-    }catch(e){
+    } catch (e){
       console.error('[Data.pushDate]', e);
       return false;
     }
   };
 
-  // подписка на весь список
-  let _rawList = [];
-  let _lastHash = '';
+  // ----- subscribe: realtime list -----
+  Data.subscribe = function(onList, onError){
+    if (!ready && !Data.init()) return;
 
-  function stableHash(list){
-    // простой хеш по ids+birth+ts
-    return list.map(x=>`${x.id}|${x.birth}|${x.ts}`).join('~');
-  }
-
-  function _emitIfChanged(handler){
-    const h = stableHash(_rawList);
-    if (h === _lastHash) return;
-    _lastHash = h;
-    handler(_rawList);
-  }
-
-  Data.subscribe = function(handler, onError){
-    if (!db) return;
-
-    const datesRef = db.ref(AppConfig.DB_PATH);
-
-    datesRef.on('value', (snap)=>{
-      const val = snap.val();
-      if (!val) { _rawList = []; _emitIfChanged(handler); return; }
-
-      _rawList = Object.entries(val)
-        .sort(([ka],[kb]) => ka.localeCompare(kb))
-        .map(([id, obj]) => ({
+    datesRef.on('value', snap=>{
+      const val = snap.val() || {};
+      const list = Object.keys(val).map(id=>{
+        const obj = val[id] || {};
+        return {
           id,
           birth: obj.birth,
-          digits: obj.digits || String(obj.birth || '').split('').map(Number),
-          ts: typeof obj.ts === 'number' ? obj.ts : 0
-        }));
+          digits: Array.isArray(obj.digits) ? obj.digits : [],
+          ts: obj.ts || 0
+        };
+      });
 
-      _emitIfChanged(handler);
-    }, (err)=>{
-      console.error('[Data.subscribe]', err);
-      if (onError) onError(err);
+      // сортировка по времени
+      list.sort((a,b)=>(a.ts||0)-(b.ts||0));
+
+      onList && onList(list);
+    }, err=>{
+      onError && onError(err);
     });
   };
 
-  // снять подписку
-  Data.off = function(){
-    if (!db) return;
-    db.ref(AppConfig.DB_PATH).off();
-  };
-
-  // Показатель: количество записей (для дебага)
-  Data.getCount = async function(){
-    if (!db) return null;
-    try{
-      const snap = await db.ref(AppConfig.DB_PATH).get();
-      const val = snap.val();
-      return val ? Object.keys(val).length : 0;
-    }catch(e){
-      console.warn('[Data.getCount]', e);
-      return null;
-    }
-  };
-
-  window.Data = Data;
+  return Data;
 })();
