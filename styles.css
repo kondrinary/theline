@@ -245,7 +245,7 @@ button:focus-visible{
 }
 
 /* поля ввода */
-#birthInput,#deathInput{
+#birthInput{
   flex: 1 1 0;           /* было 0 1 160px */
   min-width: 140px;      /* чтобы не сжимались в ноль */
   max-width: none;       /* снимем ограничение 180px */
@@ -266,7 +266,6 @@ button:focus-visible{
 }
 /* плейсхолдеры явно видимые */
 #birthInput::placeholder,
-#deathInput::placeholder{
   color: rgba(174, 174, 174, 0.75);
   opacity: 1; /* Safari */
 }
@@ -515,5 +514,4 @@ html.app-started .card--contacts{
   white-space: normal;
   word-break: break-word;
 }
-
 

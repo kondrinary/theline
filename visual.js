@@ -60,9 +60,9 @@ function digitToFreq(d){
 
 // === ОДИН ЭЛЕМЕНТ (пара дат) -> фрагмент и массив цифр (обновлено)
 function renderPairToFragment(item){
-  const bStr = item.birth.slice(0,2)+'.'+item.birth.slice(2,4)+'.'+item.birth.slice(4);
-  const dStr = item.death.slice(0,2)+'.'+item.death.slice(2,4)+'.'+item.death.slice(4);
-  const text = `${bStr}.${dStr}.`;
+  const birthDigits = (item && typeof item.birth === 'string') ? item.birth.replace(/\D/g,'').slice(0,8) : '';
+  const bStr = birthDigits.slice(0,2)+'.'+birthDigits.slice(2,4)+'.'+birthDigits.slice(4);
+  const text = `${bStr}.`;
 
   const frag  = document.createDocumentFragment();
   const spans = [];
@@ -71,24 +71,22 @@ function renderPairToFragment(item){
     const s = document.createElement('span');
     s.textContent = ch;
 
-
     if (ch === '.') s.dataset.char = '.';   // помечаем только точки
 
     if (/\d/.test(ch)) s.classList.add('digit');
     applyRandomGap(s, ch, item.id, i++);  // ← случайный CSS-отступ в ch
 
-    
     frag.appendChild(s);
     spans.push(s);
   }
 
-  // Перенос строки после пары, если включено
+  // Перенос строки после «записи», если включено
   const SP = (window.AppConfig && AppConfig.STREAM_SPACING) || {};
   if (SP.NEWLINE_AFTER_PAIR) {
     frag.appendChild(document.createElement('br'));
   }
 
-  const digitsOnly = (item.birth + item.death).split('').map(Number);
+  const digitsOnly = birthDigits.split('').map(Number);
   return { frag, spans, text, digitsOnly };
 }
 

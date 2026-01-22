@@ -4,7 +4,6 @@
   const startBtn     = document.getElementById('startBtn');
   const formSection  = document.getElementById('formSection');
   const birthInput   = document.getElementById('birthInput');
-  const deathInput   = document.getElementById('deathInput');
   const addBtn       = document.getElementById('addBtn');
   const statusEl     = document.getElementById('status');
   const rightPane    = document.getElementById('right');
@@ -65,7 +64,6 @@
 
     document.getElementById("startBtn").innerText = L.startBtn;
     document.getElementById("birthInput").placeholder = L.birthInput;
-    document.getElementById("deathInput").placeholder = L.deathInput;
     document.querySelector("#introBox .title").innerText = L.projectTitle;
     document.getElementById("addBtn").innerText = L.addBtn;
 
@@ -101,7 +99,6 @@
     el.value = out;
   }
   birthInput?.addEventListener('input', ()=>formatDateInput(birthInput));
-  deathInput?.addEventListener('input', ()=>formatDateInput(deathInput));
 
   // ===== Валидация "ДД.ММ.ГГГГ" =====
   function parseValidDate(str){
@@ -211,29 +208,20 @@
   // ====== КНОПКА «Добавить» ======
   addBtn.addEventListener('click', async ()=>{
     const bStr = birthInput.value.trim();
-    const dStr = deathInput.value.trim();
 
     clearError(); clearOk();
 
     const bDate = parseValidDate(bStr);
-    const dDate = parseValidDate(dStr);
-
-    if (!bDate || !dDate){
+    if (!bDate){
       showError(tr('errBadFormat'));
-      return;
-    }
-    if (dDate.getTime() < bDate.getTime()){
-      showError(tr('errDeathBeforeBirth'));
       return;
     }
 
     const bDigits = bStr.replace(/\D/g,'');
-    const dDigits = dStr.replace(/\D/g,'');
 
-    const ok = await Data.pushDate(bDigits, dDigits);
+    const ok = await Data.pushDate(bDigits);
     if (ok){
       birthInput.value = '';
-      deathInput.value = '';
       showOk(tr('okBar'));
 
       // показать низ, где появляется новая запись
@@ -244,14 +232,14 @@
     } else {
       showError(tr('errWriteFailed'));
     }
-  });
+  });;
 
   // ====== КНОПКА «Тестовая запись» ======
   const SEED_PRESETS = [
-    { b:'01011990', d:'02022000' },
-    { b:'15071985', d:'22092010' },
-    { b:'31121970', d:'01012000' },
-    { b:'03031999', d:'04042004' }
+    { b:'01011990' },
+    { b:'15071985' },
+    { b:'31121970' },
+    { b:'03031999' }
   ];
   let seedIndex = 0;
 
@@ -268,9 +256,9 @@
       const preset = SEED_PRESETS[seedIndex % SEED_PRESETS.length];
       seedIndex++;
 
-      const okPush = await Data.pushDate(preset.b, preset.d);
+      const okPush = await Data.pushDate(preset.b);
       if (okPush){
-        if (debugInfo) debugInfo.textContent = `${tr('seedAdded')} ${preset.b} – ${preset.d}`;
+        if (debugInfo) debugInfo.textContent = `${tr('seedAdded')} ${preset.b}`;
         setTimeout(()=> {
           const pane = document.getElementById('right');
           if (pane) pane.scrollTop = pane.scrollHeight;
@@ -631,4 +619,3 @@ if (contactsCard) intro.insertAdjacentElement('afterend', contactsCard);
   // на всякий случай — наружу
   window.applyResponsiveUIScale = applyScale;
 })();
-

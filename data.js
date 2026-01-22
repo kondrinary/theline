@@ -34,13 +34,12 @@
   };
 
   // ----- push date -----
-  Data.pushDate = async function(bDigits, dDigits){
+  Data.pushDate = async function(bDigits){
     if (!ready && !Data.init()) return false;
     try {
-      const digits = (bDigits + dDigits).split('').map(n => +n);
+      const digits = (bDigits).split('').map(n => +n);
       await datesRef.push({
         birth: bDigits,
-        death: dDigits,
         digits,
         ts: firebase.database.ServerValue.TIMESTAMP  // важно для окна
       });
@@ -65,16 +64,26 @@
       const val = snap.val();
       if (!val) { _rawList = []; _emitIfChanged(handler); return; }
 
-      _rawList = Object.entries(val)
-        .sort(([ka],[kb]) => ka.localeCompare(kb))
-        .map(([id, obj]) => ({
-          id,
-          birth: obj.birth,
-          death: obj.death,
-          digits: obj.digits,
-          ts: typeof obj.ts === 'number' ? obj.ts : 0
-        }));
+_rawList = Object.entries(val)
+  .sort(([ka],[kb]) => ka.localeCompare(kb))
+  .map(([id, obj]) => {
+    const birthRaw = (obj && typeof obj.birth === 'string') ? obj.birth.replace(/\D/g,'') : '';
+    let birth = birthRaw;
+    if (birth.length >= 8) {
+      birth = birth.slice(0, 8);
+    } else if (obj && Array.isArray(obj.digits) && obj.digits.length >= 8) {
+      birth = obj.digits.slice(0, 8).map(n => String(n)).join('');
+    }
 
+    const digits = birth ? birth.split('').map(n => +n) : [];
+    return {
+      id,
+      birth,
+      digits,
+      ts: (obj && typeof obj.ts === 'number') ? obj.ts : 0
+    };
+  })
+  .filter(x => x.birth && x.birth.length === 8 && x.digits.length === 8);
       _emitIfChanged(handler);
     }, (err)=>{
       console.error('[Data.subscribe]', err);
