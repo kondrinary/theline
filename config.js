@@ -205,15 +205,16 @@ window.AppConfig = {
   DB_PATH: 'dates',
 
   // Firebase Console Config (замени на свой)
-  firebaseConfig: {
-    apiKey: "ВАШ_API_KEY",
-    authDomain: "ВАШ_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://memorial-bea3c.europe-west1.firebasedatabase.app/",
-    projectId: "ВАШ_PROJECT_ID",
-    storageBucket: "ВАШ_PROJECT_ID.appspot.com",
-    messagingSenderId: "ВАШ_MESSAGING_SENDER_ID",
-    appId: "ВАШ_APP_ID"
-  }
+firebaseConfig: {
+  apiKey: "AIzaSyDkQzsSnNP420SyI4KMSxK1xhc9ZoOYK8E",
+  authDomain: "thelifeline-ac849.firebaseapp.com",
+  databaseURL: "https://thelifeline-ac849-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "thelifeline-ac849",
+  storageBucket: "thelifeline-ac849.firebasestorage.app",
+  messagingSenderId: "233108668587",
+  appId: "1:233108668587:web:80492ef1cf7ff0473af7ee",
+  measurementId: "G-LV68Z2VZCH"
+}
 };
 
 
