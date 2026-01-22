@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Line — ASCII Bloom Loop</title>
+  <title>Line — ASCII Straight Digit Lines (Edge Bounce)</title>
   <style>
     html,body{margin:0;height:100%;background:#0025FF;overflow:hidden}
     canvas{display:block;width:100%;height:100%}
@@ -16,6 +16,7 @@
 (() => {
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
+
   let W=0, H=0, DPR=1;
 
   function resize(){
@@ -28,14 +29,7 @@
   addEventListener('resize', resize);
   resize();
 
-  const TAU = Math.PI * 2;
-
-  // ASCII ramp from light -> dense
-  const RAMP = " .,:;i1tfLCG08@";
-  const rampLen = RAMP.length;
-
-  // Loop timing
-  const PERIOD = 7.2; // seconds
+  const DIGITS = "0123456789";
 
   function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
   function smoothstep(a,b,x){
@@ -43,123 +37,150 @@
     return x*x*(3-2*x);
   }
 
-  function bloomCurve(p){
-    // p in [0..1]
-    if (p < 0.12) return smoothstep(0.00, 0.12, p) * 0.10;       // tiny start
-    if (p < 0.62) return smoothstep(0.12, 0.62, p);              // open
-    if (p < 0.75) return 1.0;                                    // hold
-    return 1.0 - smoothstep(0.75, 1.00, p);                      // close
+  // Bigger glyphs => fewer columns
+  function computeGrid(){
+    const cols = Math.max(60, Math.min(112, Math.floor(W / (12.2*DPR))));
+    const cell = W / cols;
+    const rows = Math.floor(H / cell);
+    return { cols, rows, cell };
   }
 
-  function frame(now){
-    const t = now / 1000;
-    const p = (t % PERIOD) / PERIOD;
-    const bloom = bloomCurve(p); // 0..1
+  // Long tail + slow fade for "filling"
+  const TRAIL_FADE_ALPHA = 0.020;  // smaller = slower fade, longer persistence
+  const TAIL_LEN = 240;            // number of stored positions per line
+  const LINE_COUNT = 14;
 
-    // Subtle trail
+  // Each line: straight horizontal trajectory, bounces only at edges.
+  const lines = [];
+  function resetLines(){
+    lines.length = 0;
+    const { cols, rows } = computeGrid();
+    const usedRows = new Set();
+
+    for(let i=0;i<LINE_COUNT;i++){
+      // pick a random row but avoid too much overlap
+      let ry = Math.floor( (0.08 + Math.random()*0.84) * rows );
+      let guard = 0;
+      while(usedRows.has(ry) && guard++ < 50){
+        ry = Math.floor( (0.08 + Math.random()*0.84) * rows );
+      }
+      usedRows.add(ry);
+
+      const x = Math.random() * (cols-1);
+      const dir = Math.random() < 0.5 ? -1 : 1;
+      const speed = (0.9 + Math.random()*2.2) * cols/12; // cells per second
+
+      lines.push({
+        y: ry,
+        x,
+        dir,
+        speed,
+        history: [],
+        phase: Math.random()*Math.PI*2
+      });
+    }
+  }
+  resetLines();
+
+  // digit generator (deterministic-ish from x,y,t)
+  function digitAt(xi, yi, t){
+    const v = Math.sin((xi*0.33 + yi*0.19) + t*1.15) +
+              Math.sin((xi*0.12 - yi*0.27) - t*0.85);
+    const n = (v*0.5 + 0.5);
+    return DIGITS[Math.floor(n*10) % 10];
+  }
+
+  function fadeBackground(){
     ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = 0.20;
+    ctx.globalAlpha = TRAIL_FADE_ALPHA;
     ctx.fillStyle = '#0025FF';
     ctx.fillRect(0,0,W,H);
     ctx.globalAlpha = 1;
+  }
 
-    // Grid
-    const cols = Math.max(90, Math.min(160, Math.floor(W / (8*DPR))));
-    const cell = W / cols;
-    const rows = Math.floor(H / cell);
+  let last = performance.now();
 
+  function frame(now){
+    const dt = Math.min(0.050, (now - last) / 1000);
+    last = now;
+
+    const { cols, rows, cell } = computeGrid();
+
+    // If rows changed a lot (resize), re-seed to avoid out-of-bounds
+    if (rows < 10 || cols < 30){
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    // Slow fade -> long tails and accumulation
+    fadeBackground();
+
+    // Big ASCII digits
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `${Math.max(10, cell*0.95)}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    ctx.font = `${Math.max(16, cell*1.18)}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
 
-    const cx = cols * 0.5;
-    const cy = rows * 0.48;
+    const t = now/1000;
 
-    // Flower params (in "cell" units)
-    const baseR = Math.min(cols, rows) * 0.16;
-    const petals = 10;
-    const thickness = 0.12 + 0.20*bloom; // thickness band around petal curve
-    const coreR = baseR * (0.10 + 0.12*bloom);
+    for(const L of lines){
+      // move straight
+      L.x += L.dir * L.speed * dt;
 
-    // Stem curve in grid coords
-    const stemY0 = cy + baseR*0.70;
-    const stemY1 = cy + baseR*2.25;
-    const stemX0 = cx;
-    const stemX1 = cx + Math.sin(t*0.6)*baseR*0.08;
+      // bounce ONLY on edges
+      if (L.x <= 0){
+        L.x = 0;
+        L.dir = 1;
+      } else if (L.x >= cols-1){
+        L.x = cols-1;
+        L.dir = -1;
+      }
 
-    // Render
-    for(let y=0; y<rows; y++){
-      for(let x=0; x<cols; x++){
-        // normalized coordinates in flower space
-        const dx = (x - cx);
-        const dy = (y - cy);
-        const r  = Math.hypot(dx, dy) / baseR;
-        const ang = Math.atan2(dy, dx);
+      // store position for tail
+      L.history.push(L.x);
+      if (L.history.length > TAIL_LEN) L.history.shift();
 
-        // Petal radius function (polar)
-        const open = bloom;
-        const petalMod = 0.65 + 0.35*Math.cos(petals*ang + Math.sin(t*0.7)*0.15);
-        const rPetal = (0.35 + 0.95*open) * petalMod;
+      // draw tail from old -> new
+      const n = L.history.length;
+      for(let i=0;i<n;i++){
+        const xi = L.history[i];
+        const age = (n-1-i) / Math.max(1, n-1);   // 0 newest .. 1 oldest
+        const a = (1.0 - age);
+        // make tail long & visible
+        const alpha = 0.08 + 0.62*Math.pow(a, 1.35);
 
-        // Petal band intensity
-        const band = 1.0 - Math.abs(r - rPetal) / thickness;
-        let petalI = clamp(band, 0, 1);
+        // slight sparkle near head
+        const headBoost = (i === n-1) ? 1.2 : 1.0;
 
-        // Fade petals inside/outside to avoid filling the whole disc
-        petalI *= smoothstep(0.10, 0.55, r) * (1.0 - smoothstep(1.15, 1.55, r));
+        const gx = Math.round(xi);
+        const gy = L.y;
 
-        // Core intensity
-        const coreI = clamp(1.0 - (r / (coreR/baseR)), 0, 1) * (0.55 + 0.45*open);
+        // keep in bounds
+        if (gx < 0 || gx >= cols || gy < 0 || gy >= rows) continue;
 
-        // Stem intensity (distance to bezier-ish line)
-        let stemI = 0;
-        if (y > stemY0 && y < stemY1){
-          const ty = (y - stemY0) / (stemY1 - stemY0);
-          const sx = stemX0*(1-ty) + stemX1*ty + Math.sin(ty*TAU*0.5 + t*0.4)*baseR*0.04;
-          const dist = Math.abs(x - sx);
-          stemI = clamp(1.0 - dist/(0.55 + 0.25*open), 0, 1) * 0.55;
-        }
+        const ch = digitAt(gx, gy, t + L.phase);
 
-        // Leaves
-        let leafI = 0;
-        if (y > cy + baseR*1.15 && y < cy + baseR*1.65){
-          const lx = cx + (dx>0?1:-1)*baseR*0.55;
-          const ly = cy + baseR*1.40;
-          const ld = Math.hypot(x-lx, y-ly) / (baseR*0.55);
-          leafI = clamp(1.0 - ld, 0, 1) * (0.25 + 0.25*open);
-        }
-
-        // Combine
-        let I = Math.max(petalI, coreI, stemI, leafI);
-
-        if (I < 0.06) continue;
-
-        // Choose glyph
-        const idx = Math.min(rampLen-1, Math.floor(I * (rampLen-1)));
-        const ch = RAMP[idx];
-
-        // Color: petals/core white; greenery green; stem muted white
-        let fill = 'rgba(255,255,255,0.85)';
-        if (leafI > petalI && leafI > coreI) fill = 'rgba(97,230,53,0.45)'; // green
-        else if (coreI > petalI) fill = 'rgba(97,230,53,0.55)';
-        else if (stemI > petalI) fill = 'rgba(255,255,255,0.35)';
-
-        ctx.fillStyle = fill;
-        ctx.globalAlpha = 0.55 + 0.45*I;
-
-        ctx.fillText(ch, (x + 0.5)*cell, (y + 0.5)*cell);
+        ctx.fillStyle = `rgba(255,255,255,${(alpha*headBoost).toFixed(3)})`;
+        ctx.fillText(ch, (gx + 0.5)*cell, (gy + 0.5)*cell);
       }
     }
 
-    ctx.globalAlpha = 1;
     requestAnimationFrame(frame);
   }
 
-  // Hard clear once to avoid first-frame artifacts
+  // initial clear
   ctx.fillStyle = '#0025FF';
   ctx.fillRect(0,0,W,H);
-
   requestAnimationFrame(frame);
+
+  // Rebuild lines on resize (new random each run/resize)
+  let resizeTimer = null;
+  addEventListener('resize', ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(()=>{
+      resetLines();
+    }, 120);
+  });
+
 })();
 </script>
 </body>
