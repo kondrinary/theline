@@ -1,172 +1,166 @@
 <!doctype html>
 <html lang="ru">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Unicode Flame — size min + coeff</title>
-<style>
-  html,body{margin:0;height:100%;background:#0025FF;overflow:hidden}
-  canvas{display:block;width:100vw;height:100vh}
-</style>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Line — ASCII Bloom Loop</title>
+  <style>
+    html,body{margin:0;height:100%;background:#0025FF;overflow:hidden}
+    canvas{display:block;width:100%;height:100%}
+  </style>
+</head>
+<body>
 <canvas id="c"></canvas>
+
 <script>
-/* ===================== ПАРАМЕТРЫ (МОЖНО МЕНЯТЬ) =====================
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W=0, H=0, DPR=1;
 
-— СИМВОЛЫ —
-const SYMBOLS     : «палитра» символов (3–12 штук)
-const CELL        : размер «пикселя»-ячейки
-const FG          : цвет символов
-const CONTRAST    : мягкость переходов (1.0..2.0)
+  function resize(){
+    DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    W = Math.floor(innerWidth  * DPR);
+    H = Math.floor(innerHeight * DPR);
+    canvas.width = W;
+    canvas.height = H;
+  }
+  addEventListener('resize', resize);
+  resize();
 
-— ОСНОВАНИЕ/НАПРАВЛЕНИЕ —
-BASE              : [x,y] основание пламени (0..1) — по умолчанию центр-низ
-TIP               : [x,y] вершина (чуть по диагонали)
-PATH_OFFSET       : контрольная точка квадр. Безье (задаёт «сгиб» пути)
-BLOBS             : число эллипсов вдоль пути (3–7)
+  const TAU = Math.PI * 2;
 
-— РАЗМЕРЫ ЭЛЛИПСОВ (ВАЖНОЕ НОВОЕ) —
-SIZE_MIN          : минимальный размер эллипса (доля ширины экрана)
-SIZE_K            : коэффициент зависимости. 0 = все равны SIZE_MIN.
-                    10 = самый верхний = 10 * SIZE_MIN,
-                    промежуточные растут линейно от основания к верху.
-SIZE_CURVE        : 1 = линейно; >1 — рост позже; <1 — раньше.
-ROUNDNESS         : 0..1 — 1 ближе к кругу (округление формы)
+  // ASCII ramp from light -> dense
+  const RAMP = " .,:;i1tfLCG08@";
+  const rampLen = RAMP.length;
 
-— ДЫХАНИЕ —
-SPEED             : скорость
-BREATH_SIZE       : амплитуда дыхания размеров (0..0.45)
-BREATH_TILT       : покачивание угла
-BREATH_DRIFT      : дрейф центра
+  // Loop timing
+  const PERIOD = 7.2; // seconds
 
-— СВЕТ/ВИНЬЕТКА —
-SHIFT_GAIN        : сила диагонального подсвета в сторону TIP
-VIGNETTE, VIGNETTE_POWER : виньетка
-
-— ШУМ —
-NOISE, NOISE_SPEED, JITTER: зерно и микродрожание
-===================================================================== */
-
-const SYMBOLS = ["·","˙","▏","▚","░","▜","▉","▉"];
-const CELL = 10;
-const FG = " #fff"; //#38ad40
-const CONTRAST = 1.2;
-
-const BASE = [0.5, 0.94];
-const TIP  = [0.62, 0.2];
-const PATH_OFFSET = [0.56, 0.55];
-const BLOBS = 6;
-
-// ---- размеры эллипсов ----
-const SIZE_MIN   = 0.15;   // минимальный размер (например, 0.07 = 7% ширины)
-const SIZE_K     = 2.6;      // коэффициент: 0 → все = SIZE_MIN; 6 → верхний = 6×SIZE_MIN
-const SIZE_CURVE = 1.2;    // кривая роста: 1 линейно; 2 — рост к концу; 0.5 — в начале
-const ROUNDNESS  = 0.6;    // 0..1 — округлить эллипсы (1 ≈ круги)
-
-const SPEED = 0.22;
-const BREATH_SIZE = 0.28;
-const BREATH_TILT = 0.12;
-const BREATH_DRIFT = 0.020;
-
-const SHIFT_GAIN = 0.65;
-const VIGNETTE = 0.4;
-const VIGNETTE_POWER = 0.2;
-
-const NOISE = 0.16, NOISE_SPEED = 0.25, JITTER = 0.25;
-
-/* ===================== КОД НИЖЕ ЛУЧШЕ НЕ ТРОГАТЬ ==================== */
-
-const cv = document.getElementById('c');
-const ctx = cv.getContext('2d');
-let W,H,cols,rows,px;
-
-function resize(){
-  const dpr = Math.max(1, devicePixelRatio||1);
-  W = Math.floor(innerWidth*dpr); H = Math.floor(innerHeight*dpr);
-  cv.width=W; cv.height=H; cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
-  px = CELL*dpr; cols=Math.ceil(W/px); rows=Math.ceil(H/px);
-  ctx.font = `${Math.floor(px)}px monospace`;
-  ctx.textAlign="center"; ctx.textBaseline="middle";
-}
-addEventListener('resize', resize, {passive:true}); resize();
-
-function bezier2(a,b,c,t){ const u=1-t; return [u*u*a[0]+2*u*t*b[0]+t*t*c[0], u*u*a[1]+2*u*t*b[1]+t*t*c[1]]; }
-
-// создаём BLOBS эллипсов вдоль BASE→TIP
-const blobs = Array.from({length:BLOBS}, (_,i)=>{
-const t0 = BLOBS===1 ? 0.5 : i/(BLOBS-1);
-const t  = Math.pow(t0, SIZE_CURVE);   // 0..1 вдоль пути (снизу→вверх)
-const g  = 1 - t;                       // инверсия: крупнее у основания, меньше кверху
-  const [x,y] = bezier2(BASE, PATH_OFFSET, TIP, t0);
-
-  // линейный рост: min → min*SIZE_K
-const baseSize = SIZE_MIN * (1 + (SIZE_K - 1) * g);  const rx = baseSize;                               // полуось по X
-  const ry = baseSize * (1 - (1-ROUNDNESS)*0.6);     // полуось по Y (округляем форму)
-
-  return {
-    x,y,
-    rx, ry,
-    ang: -0.6 + (Math.random()-0.5)*0.2,             // слегка по диагонали
-    phase: Math.random()*Math.PI*2
-  };
-});
-
-function rot(x,y,a){ const c=Math.cos(a), s=Math.sin(a); return [c*x - s*y, s*x + c*y]; }
-
-function field(xn, yn, t){
-  let s=0;
-  for(const b of blobs){
-    const kx = 1 + BREATH_SIZE*Math.sin(t*SPEED*1.00 + b.phase);
-    const ky = 1 + BREATH_SIZE*Math.cos(t*SPEED*1.12 + b.phase*1.1);
-    const a  = b.ang + BREATH_TILT*Math.sin(t*SPEED*0.7 + b.phase*0.8);
-
-    const cx = b.x + BREATH_DRIFT*Math.sin(t*0.9 + b.phase);
-    const cy = b.y + BREATH_DRIFT*Math.cos(t*0.8 + b.phase);
-
-    const [ux,uy] = rot(xn-cx, yn-cy, a);
-    const d = (ux*ux)/(b.rx*b.rx*kx*kx) + (uy*uy)/(b.ry*b.ry*ky*ky);
-    s += Math.exp(-3*d);
+  function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
+  function smoothstep(a,b,x){
+    x = clamp((x-a)/(b-a), 0, 1);
+    return x*x*(3-2*x);
   }
 
-  // диагональный подсвет к TIP
-  const diag = Math.max(0, (xn*TIP[0] + yn*TIP[1]) / Math.hypot(TIP[0], TIP[1]));
-  s += diag*SHIFT_GAIN;
+  function bloomCurve(p){
+    // p in [0..1]
+    if (p < 0.12) return smoothstep(0.00, 0.12, p) * 0.10;       // tiny start
+    if (p < 0.62) return smoothstep(0.12, 0.62, p);              // open
+    if (p < 0.75) return 1.0;                                    // hold
+    return 1.0 - smoothstep(0.75, 1.00, p);                      // close
+  }
 
-  // виньетка
-  const dx=xn-0.5, dy=yn-0.5;
-  const r = Math.hypot(dx*1.2, dy*1.2);
-  const vig = 1 - VIGNETTE*Math.pow(Math.min(1,r), VIGNETTE_POWER);
-  s = Math.max(0, s*vig);
+  function frame(now){
+    const t = now / 1000;
+    const p = (t % PERIOD) / PERIOD;
+    const bloom = bloomCurve(p); // 0..1
 
-  return Math.pow(Math.min(1, s), CONTRAST);
-}
+    // Subtle trail
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 0.20;
+    ctx.fillStyle = '#0025FF';
+    ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha = 1;
 
-// дешёвый шум
-function hash(i,j,k=0){ let n=(i*73856093)^(j*19349663)^(k*83492791); n=(n<<13)^n; return ((n*(n*n*15731+789221)+1376312589)>>>0)/4294967295; }
+    // Grid
+    const cols = Math.max(90, Math.min(160, Math.floor(W / (8*DPR))));
+    const cell = W / cols;
+    const rows = Math.floor(H / cell);
 
-function draw(tms){
-  const t=tms/1000;
-  ctx.fillStyle="#0025FF"; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle=FG;
-  const kt=Math.floor(t*NOISE_SPEED*60);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${Math.max(10, cell*0.95)}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
 
-  for(let j=0;j<rows;j++){
-    const y0=(j+0.5)*px, yn=y0/H;
-    for(let i=0;i<cols;i++){
-      const x0=(i+0.5)*px, xn=x0/W;
+    const cx = cols * 0.5;
+    const cy = rows * 0.48;
 
-      let v = field(xn,yn,t);
-      v = Math.min(1, Math.max(0, v + (hash(i,j,kt)*2-1)*NOISE));
+    // Flower params (in "cell" units)
+    const baseR = Math.min(cols, rows) * 0.16;
+    const petals = 10;
+    const thickness = 0.12 + 0.20*bloom; // thickness band around petal curve
+    const coreR = baseR * (0.10 + 0.12*bloom);
 
-      const idx = Math.min(SYMBOLS.length-1, Math.floor(v*SYMBOLS.length));
-      const a = 0.5 + 0.5*v;
+    // Stem curve in grid coords
+    const stemY0 = cy + baseR*0.70;
+    const stemY1 = cy + baseR*2.25;
+    const stemX0 = cx;
+    const stemX1 = cx + Math.sin(t*0.6)*baseR*0.08;
 
-      const jx=(hash(j,i,kt+7)-0.5)*JITTER*px;
-      const jy=(hash(i,j,kt+13)-0.5)*JITTER*px;
+    // Render
+    for(let y=0; y<rows; y++){
+      for(let x=0; x<cols; x++){
+        // normalized coordinates in flower space
+        const dx = (x - cx);
+        const dy = (y - cy);
+        const r  = Math.hypot(dx, dy) / baseR;
+        const ang = Math.atan2(dy, dx);
 
-      ctx.globalAlpha=a; ctx.fillText(SYMBOLS[idx], x0+jx, y0+jy);
+        // Petal radius function (polar)
+        const open = bloom;
+        const petalMod = 0.65 + 0.35*Math.cos(petals*ang + Math.sin(t*0.7)*0.15);
+        const rPetal = (0.35 + 0.95*open) * petalMod;
+
+        // Petal band intensity
+        const band = 1.0 - Math.abs(r - rPetal) / thickness;
+        let petalI = clamp(band, 0, 1);
+
+        // Fade petals inside/outside to avoid filling the whole disc
+        petalI *= smoothstep(0.10, 0.55, r) * (1.0 - smoothstep(1.15, 1.55, r));
+
+        // Core intensity
+        const coreI = clamp(1.0 - (r / (coreR/baseR)), 0, 1) * (0.55 + 0.45*open);
+
+        // Stem intensity (distance to bezier-ish line)
+        let stemI = 0;
+        if (y > stemY0 && y < stemY1){
+          const ty = (y - stemY0) / (stemY1 - stemY0);
+          const sx = stemX0*(1-ty) + stemX1*ty + Math.sin(ty*TAU*0.5 + t*0.4)*baseR*0.04;
+          const dist = Math.abs(x - sx);
+          stemI = clamp(1.0 - dist/(0.55 + 0.25*open), 0, 1) * 0.55;
+        }
+
+        // Leaves
+        let leafI = 0;
+        if (y > cy + baseR*1.15 && y < cy + baseR*1.65){
+          const lx = cx + (dx>0?1:-1)*baseR*0.55;
+          const ly = cy + baseR*1.40;
+          const ld = Math.hypot(x-lx, y-ly) / (baseR*0.55);
+          leafI = clamp(1.0 - ld, 0, 1) * (0.25 + 0.25*open);
+        }
+
+        // Combine
+        let I = Math.max(petalI, coreI, stemI, leafI);
+
+        if (I < 0.06) continue;
+
+        // Choose glyph
+        const idx = Math.min(rampLen-1, Math.floor(I * (rampLen-1)));
+        const ch = RAMP[idx];
+
+        // Color: petals/core white; greenery green; stem muted white
+        let fill = 'rgba(255,255,255,0.85)';
+        if (leafI > petalI && leafI > coreI) fill = 'rgba(97,230,53,0.45)'; // green
+        else if (coreI > petalI) fill = 'rgba(97,230,53,0.55)';
+        else if (stemI > petalI) fill = 'rgba(255,255,255,0.35)';
+
+        ctx.fillStyle = fill;
+        ctx.globalAlpha = 0.55 + 0.45*I;
+
+        ctx.fillText(ch, (x + 0.5)*cell, (y + 0.5)*cell);
+      }
     }
+
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(frame);
   }
-  ctx.globalAlpha=1; requestAnimationFrame(draw);
-}
-requestAnimationFrame(draw);
+
+  // Hard clear once to avoid first-frame artifacts
+  ctx.fillStyle = '#0025FF';
+  ctx.fillRect(0,0,W,H);
+
+  requestAnimationFrame(frame);
+})();
 </script>
+</body>
 </html>
