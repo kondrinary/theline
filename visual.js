@@ -58,11 +58,10 @@ function digitToFreq(d){
   return FREQ_MIN + d * step;
 }
 
-// === ОДИН ЭЛЕМЕНТ (пара дат) -> фрагмент и массив цифр (обновлено)
+// === ОДИН ЭЛЕМЕНТ (одна дата) -> фрагмент и массив цифр
 function renderPairToFragment(item){
   const bStr = item.birth.slice(0,2)+'.'+item.birth.slice(2,4)+'.'+item.birth.slice(4);
-  const dStr = item.death.slice(0,2)+'.'+item.death.slice(2,4)+'.'+item.death.slice(4);
-  const text = `${bStr}.${dStr}.`;
+  const text = `${bStr}.`;
 
   const frag  = document.createDocumentFragment();
   const spans = [];
@@ -71,24 +70,21 @@ function renderPairToFragment(item){
     const s = document.createElement('span');
     s.textContent = ch;
 
-
     if (ch === '.') s.dataset.char = '.';   // помечаем только точки
-
     if (/\d/.test(ch)) s.classList.add('digit');
     applyRandomGap(s, ch, item.id, i++);  // ← случайный CSS-отступ в ch
 
-    
     frag.appendChild(s);
     spans.push(s);
   }
 
-  // Перенос строки после пары, если включено
+  // Перенос строки после даты, если включено
   const SP = (window.AppConfig && AppConfig.STREAM_SPACING) || {};
   if (SP.NEWLINE_AFTER_PAIR) {
     frag.appendChild(document.createElement('br'));
   }
 
-  const digitsOnly = (item.birth + item.death).split('').map(Number);
+  const digitsOnly = String(item.birth).split('').map(Number);
   return { frag, spans, text, digitsOnly };
 }
 
@@ -115,7 +111,7 @@ function renderPairToFragment(item){
         const ch = text[i];
         if (/\d/.test(ch)){
           const d = digitsOnly[di];
-          const isLast = (di === digitsOnly.length - 1); // конец пары
+          const isLast = (di === digitsOnly.length - 1); // конец даты
           Visual.timeline.push({
             digit: d,
             freq: digitToFreq(d),
