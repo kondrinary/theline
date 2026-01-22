@@ -1,107 +1,85 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<title>Death Melody</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Death Melody</title>
 
-<!-- Внешние библиотеки -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- CSS -->
+  <link rel="stylesheet" href="./styles.css" />
 
-<!-- Google Font -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<link rel="stylesheet" href="styles.css" />
+  <!-- Config must go BEFORE main.js -->
+  <script src="./config.js"></script>
 </head>
 
-
 <body>
+  <!-- фон (iframe) -->
+  <iframe id="bgA" class="bg-flame" src="./bgA.html"></iframe>
+  <iframe id="bgB" class="bg-flame" src="./bgB.html" style="opacity:0;"></iframe>
 
+  <!-- верхняя строка (контакты / дебаг) -->
+  <div id="contactsBar"></div>
+  <div id="debugInfo">
+    <div class="di-center" id="debugCenter"></div>
+  </div>
+  <div class="debug-side" id="dbLeft"></div>
+  <div class="debug-side" id="dbRight"></div>
 
-<!-- ПОКАЗЫВАЕМ ОГОНЬ/ШУМ НА ФОНЕ -->
-<iframe id="fireFrame" src="./fire.html" class="bg-flame"></iframe>
-<iframe id="noiseFrame" src="./noise.html" class="bg-flame" style="display:none"></iframe>
+  <!-- правая часть: поток дат -->
+  <section id="right">
+    <div id="stream"></div>
+  </section>
 
+  <!-- нижняя панель -->
+  <section id="left">
+    <div class="left-inner">
 
-<div id="left">
-  <div class="left-inner">
+      <!-- форма (скрыта до старта) -->
+      <div id="formSection">
+        <input id="birthInput" inputmode="numeric" placeholder="дата рождения (дд.мм.гггг)" autocomplete="off" />
+        <button id="nowPlayInline" type="button"></button>
+        <button id="addBtn" type="button"></button>
+      </div>
 
-    <!-- Плашка-интро -->
-    <div id="introBox" class="card">
-      <h1 class="title">Название проекта</h1>
-      <p class="desc">
-        Короткое описание проекта в пару строк. Здесь можно объяснить идею и инструкцию.
-      </p>
+      <!-- OK / ERROR -->
+      <div id="okBar" hidden></div>
+      <div id="errorBar" hidden></div>
+
+      <!-- описание -->
+      <div class="card" id="introBox">
+        <div class="title" id="projectTitle">Название проекта</div>
+        <div class="desc" id="introDesc">Описание проекта</div>
+      </div>
+
+      <!-- кнопка старта (в правой колонке) -->
+      <button id="startBtn" type="button"></button>
+
     </div>
+  </section>
 
-   
-    <!-- Старт -->
-    <button id="startBtn" type="button">Старт</button>
+  <!-- ЛОГИКА -->
+  <script src="./data.js"></script>
+  <script src="./visual.js"></script>
+  <script src="./player.js"></script>
+  <script src="./overlay.fx.js"></script>
+  <script src="./synth.params.js"></script>
+  <script src="./synth.js"></script>
+  <script src="./main.js"></script>
 
-      <!-- НОВОЕ МЕСТО для карточки контактов -->
-  <div id="contactsCard" class="card card--contacts">
-    <div class="desc" id="contactsCardText"></div>
-  </div>
-
-    <!-- Форма появляется после старта; интро-блок остаётся сверху -->
-    <div id="formSection">
-      <input id="birthInput"  maxlength="10">
-      <input id="deathInput"  maxlength="10">
-      <button id="addBtn" type="button">Добавить</button>
-
-    </div> 
-
-<!-- Полоса ошибки (скрыта) -->
-<div id="errorBar" role="alert" aria-live="polite" hidden></div>
-<!-- Полоса успеха -->
-<div id="okBar" role="status" aria-live="polite" hidden></div>
-
-
-
-<div id="status"></div>
-<div id="debugInfo"></div>
-    
-    
-    <!-- КНОПКА ТЕСТОВОЙ ЗАПИСИ (видимость управляем из config.js → ENABLE_SEED) -->
-    <button id="seedBtn" type="button">Добавить тестовую запись</button>
-
-  </div>
-</div>
-
-<div id="dbLeft"  class="debug-side"></div>
-<div id="dbRight" class="debug-side"></div>
-
-<!-- Правая панель: бесконечный поток дат (в одну ленту) -->
-<div id="right">
-  <div id="stream"></div>
-</div>
-
-
-
-
-<!-- Порядок важен: конфиг → синт → визуал → плеер → база → мейн -->
-<script src="config.js"></script>
-  <script src="synth.params.js"></script>
-<script src="synth.js"></script>
-<script src="visual.js"></script>
-<script src="overlay.fx.js"></script>
-<script src="player.js"></script>
-<script src="data.js"></script>
-<script src="main.js"></script>
-
-<script>
-document.getElementById('startBtn').addEventListener('click', () => {
-  // спрятать огонь
-  document.getElementById('fireFrame').style.display = "none";
-  // показать шум
-  document.getElementById('noiseFrame').style.display = "block";
-});
-</script>
-
-
-
+  <!-- только переключение фона по клику (оставляю как в твоём варианте) -->
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    startBtn.addEventListener('click', () => {
+      const a = document.getElementById('bgA');
+      const b = document.getElementById('bgB');
+      const opA = parseFloat(a.style.opacity || '1');
+      a.style.opacity = (opA > 0.5) ? '0' : '1';
+      b.style.opacity = (opA > 0.5) ? '1' : '0';
+    });
+  </script>
 </body>
 </html>
