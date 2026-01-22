@@ -2,8 +2,8 @@
 :root{
   --ui-scale: 1.0;                 /* 0…2 — общий масштаб UI */
   --intro-top: 30vh;               /* верх плашки от окна */
-  --page-bg: #000;                 /* фон страницы */
-  --card-bg: #000000d0;            /* фон плашки-описания */
+  --page-bg: rgb(0,0,255);               /* фон страницы */
+  --card-bg: #0000ffd0;            /* фон плашки-описания */
   --text-color: #fff;              /* общий цвет текста */
   --text-muted: #424242;           /* приглушённый текст */
   --stream: #ffffff;
@@ -40,7 +40,7 @@
 
   /* кнопки (кроме кнопки языка) */
   --btn-bg:  #fff;
-  --btn-fg:  #000;
+  --btn-fg:  rgb(0,0,255);
   --btn-h:   calc(34px * var(--ui-scale));
   --btn-pad-x: calc(14px * var(--ui-scale));
   --btn-radius: 0px;
@@ -55,7 +55,7 @@
 
   /* нижняя плашка  */
   --bottom-panel-h: 34vh;     /* высота нижней фиксированнной панели */
-  --bottom-panel-bg: #000;    /* цвет фона панели */
+  --bottom-panel-bg: rgb(0,0,255);    /* цвет фона панели */
 
   --error-dusty-red: #a93f3f;   /* цвет текста ошибки */
   --ok-text: var(--text-color); /* белый текст успеха по умолчанию */
@@ -79,9 +79,6 @@
 
   --debug-top: 20px;           /* вертикальное смещение debug-строки и «ушей» */
   --debug-min-gap: 16px;      /* мин. зазор между ушами и центральным текстом */
-
-
-
 }
 /* =========================================== */
 
@@ -171,7 +168,7 @@ html, body {
   background:var(--card-bg);
   box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color);
   border-radius:0;
-padding: 0 var(--card-pad-x) var(--card-pad-y) var(--card-pad-x); 
+  padding: 0 var(--card-pad-x) var(--card-pad-y) var(--card-pad-x); 
   grid-column: 1; /* слева */
   /* NEW: внутри .card делаем "тайтл | описание" в одну строку по верху */
   display: grid;
@@ -180,8 +177,7 @@ padding: 0 var(--card-pad-x) var(--card-pad-y) var(--card-pad-x);
   align-items: start;
   column-gap: var(--stack-gap);
 
-text-align: justify;  
-
+  text-align: justify;  
 }
 .card .title{
   margin:10px 10px 6px 0; color:var(--text-color);
@@ -222,7 +218,6 @@ button:focus-visible{
   grid-column: 2;   /* правая колонка */
   align-self: start;
   justify-self: start;
-
 }
 
 /* форма (скрыта до старта) — при показе занимает ВЕРХНИЙ РЯД на всю ширину
@@ -245,10 +240,10 @@ button:focus-visible{
 }
 
 /* поля ввода */
-#birthInput,#deathInput{
-  flex: 1 1 0;           /* было 0 1 160px */
-  min-width: 140px;      /* чтобы не сжимались в ноль */
-  max-width: none;       /* снимем ограничение 180px */
+#birthInput{
+  flex: 1 1 0;
+  min-width: 140px;
+  max-width: none;
   height:var(--btn-h);
   padding:0 8px;
 
@@ -258,15 +253,14 @@ button:focus-visible{
   border: none;
   font-family:var(--font-ui); font-size:var(--input-font);
   font-weight:var(--font-weight);
-  color:#fff; background:#000;
+  color:#fff; background: rgb(0,0,255);
   border-radius:0;
 
   /* белая «обводка» через inset-тень (стандарт) */
   box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color);
 }
 /* плейсхолдеры явно видимые */
-#birthInput::placeholder,
-#deathInput::placeholder{
+#birthInput::placeholder{
   color: rgba(174, 174, 174, 0.75);
   opacity: 1; /* Safari */
 }
@@ -289,12 +283,11 @@ button:focus-visible{
 #debugInfo{
   position: fixed;
   top: var(--debug-top);
-  /* растягиваем РОВНО между ушами */
   left:  var(--debug-left-reserve, 0px);
   right: var(--debug-right-reserve, 0px);
 
   height: var(--contacts-h);
-  background: #000;
+  background: rgb(0,0,255);
   color: var(--text-color);
   font-size: var(--contacts-size);
   font-weight: var(--font-weight);
@@ -311,27 +304,26 @@ button:focus-visible{
 #contactsBar{
   position: fixed;
   left: 0; right: 0;
-  top: 0;                 /* было bottom:0 */
+  top: 0;
   bottom: auto;
   min-height: var(--contacts-h);
   padding: 4px 12px;
   background: #fff;       /* белый фон */
-  color: #000;            /* чёрный текст */
+  color: rgb(0,0,255);            /* синий текст */
   font-size: var(--contacts-size);
   font-weight: 100;
   line-height: var(--contacts-wrap-lh);
   text-align: center;
   white-space: normal;
   word-break: break-word;
-  z-index: 1050;          /* выше debug (1000), ниже кнопки языка (1100) */
-  /* display:none !important;   СКРЫТО */
+  z-index: 1050;
 }
 
 /* поток дат */
 #stream{
   max-width:100%; margin:0 auto; text-align:center;
   white-space:nowrap; word-break:keep-all; color:var(--text-color);
-  overflow-x:auto; /* если не влезет — горизонтальный скролл, а не перенос */
+  overflow-x:auto;
   font-weight:var(--font-weight);
 }
 #stream .digit{ color:var(--stream); display:inline-block; padding-right: var(--char-gap); }
@@ -340,17 +332,16 @@ button:focus-visible{
 /* СПЕЦ. ПРАВИЛА ДЛЯ ТОЧКИ */
 #stream [data-char="."]{
   display:inline-block;
-  padding-right: var(--dot-gap-after);  /* ПОСЛЕ точки (переопределяем общий шаг) */
-  margin-left:  var(--dot-gap-before);  /* ДО точки (добавка перед самой точкой) */
+  padding-right: var(--dot-gap-after);
+  margin-left:  var(--dot-gap-before);
 }
 
 /* Полоса ошибки/успеха — самостоятельный блок между формой и описанием */
 #okBar, #errorBar{
   display: block;
   position: relative;
-  grid-column: 1 / -1; /* каждая полоса — на всю ширину сетки (обе колонки) */
+  grid-column: 1 / -1;
 
-  /* геометрия, управляемая из JS (var(--bars-left/width)) */
   width: var(--bars-width, 100%);
   margin-left: var(--bars-left, 0px);
 
@@ -358,7 +349,6 @@ button:focus-visible{
   margin-top: 0px; margin-bottom: 6px;
   padding: 10px 12px;
 
-  /* стандартизированная белая обводка */
   box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color);
   border-radius: 0;
 
@@ -390,8 +380,6 @@ button:focus-visible{
 /* Кнопка смены языка как подчёркнутая ссылка в верхней строке (в разметке удалена, правило оставляем на случай старых билдов) */
 #langBtn{ display: none !important; }
 
-
-
 /* центральная строка дебага не налезает на уши */
 #debugInfo{
   white-space: nowrap;
@@ -408,10 +396,10 @@ button:focus-visible{
 
 
 :root{
-  --contacts-h: 20px;      /* высота строки верхней полосы */
-  --debug-top: 0px;        /* отступ от верхнего края окна */
-  --debug-breakpoint: 680px;/* ширина окна, после которой включаем 2-ю строку */
-  --debug-side-pad: 12px;  /* отступ «ушей» от краёв */
+  --contacts-h: 20px;
+  --debug-top: 0px;
+  --debug-breakpoint: 680px;
+  --debug-side-pad: 12px;
 }
 
 /* ЧЕРНАЯ ПОЛОСА ВСЕГДА НА ВЕСЬ ЭКРАН */
@@ -419,8 +407,8 @@ button:focus-visible{
   position: fixed;
   top: var(--debug-top);
   left: 0; right: 0;
-  height: var(--contacts-h);      /* по умолчанию одна строка */
-  background: #000;
+  height: var(--contacts-h);
+  background: rgb(0,0,255);
   z-index: 1000;
 }
 
@@ -429,13 +417,13 @@ button:focus-visible{
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translateX(-50%);    /* строгий центр */
+  transform: translateX(-50%);
   height: var(--contacts-h);
   line-height: var(--contacts-h);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: calc(100% - 2 * 140px); /* небольшой запас от «ушей» без расчётов */
+  max-width: calc(100% - 2 * 140px);
   text-align: center;
   pointer-events: none;
   color: var(--text-color);
@@ -458,49 +446,43 @@ button:focus-visible{
 #dbLeft  { left:  var(--debug-side-pad); }
 #dbRight { right: var(--debug-side-pad); cursor: pointer; text-decoration: underline; }
 
-/* УЗКОЕ ОКНО → ДВЕ СТРОКИ: уши остаются сверху, центр уезжает на вторую строку вправо */
+/* УЗКОЕ ОКНО → ДВЕ СТРОКИ */
 @media (max-width: 680px){
-  #debugInfo{ height: calc(var(--contacts-h) * 2); } /* полоса стала выше */
+  #debugInfo{ height: calc(var(--contacts-h) * 2); }
   #debugInfo .di-center{
-    top: var(--contacts-h);         /* вторая строка */
+    top: var(--contacts-h);
     left: auto;
-    right: var(--debug-side-pad);   /* выравниваем по правому краю */
+    right: var(--debug-side-pad);
     transform: none;
     max-width: calc(100% - 2 * var(--debug-side-pad));
     text-align: right;
-    pointer-events: auto;           /* можно выделять текст, если нужно */
+    pointer-events: auto;
   }
 }
 
 /* важное: чтобы контент под полосой не прятался — отступ сверху у правой панели */
 #right{
-  padding-top: calc(var(--contacts-h) + 8px); /* одна строка по умолчанию */
+  padding-top: calc(var(--contacts-h) + 8px);
 }
 @media (max-width: 680px){
   #right{
-    padding-top: calc(var(--contacts-h) * 2 + 8px); /* две строки в узком окне */
+    padding-top: calc(var(--contacts-h) * 2 + 8px);
   }
 }
 
-
 /* Карточка "Контакты" — такая же как описание, слева, на всю ширину колонки */
 .card--contacts{
-  grid-column: 1; /* как и .card с описанием */
+  grid-column: 1;
   background: var(--card-bg);
   box-shadow: inset 0 0 0 var(--stroke-size) var(--stroke-color);
   border-radius: 0;
   padding: var(--card-pad-y) var(--card-pad-x);
-
-    /* ключ: всегда “встык” к .card */
   margin-top: calc(-1 * var(--stack-gap));
-
-  /* чтобы нигде визуально не “пряталась” */
   position: relative;
   z-index: 2;
-
 }
 
-/* после старта (экран дат): прилипнуть «встык» к инфо-блоку, как ты любишь */
+/* после старта (экран дат) */
 html.app-started .card--contacts{
   margin-top: calc(-1 * var(--stack-gap));
 }
@@ -515,5 +497,3 @@ html.app-started .card--contacts{
   white-space: normal;
   word-break: break-word;
 }
-
-
