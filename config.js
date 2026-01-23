@@ -44,10 +44,8 @@ const TEXTS = {
     birthInput: "дата рождения (дд.мм.гггг)",
     deathInput: "дата смерти (дд.мм.гггг)",
     projectTitle: "THE LINE",
-    introDesc: "Это веб‑инсталляция, которая работает постоянно и в реальном времени. Ты можешь оставить на сайте свою дату рождения — она попадёт в общую базу данных и станет частью большой общей музыкальной партитуры. Мы создали микротональный строй, в котором каждой цифре соответствует своя частота, поэтому даты разных людей начинают звучать как единое звуковое поле. Это способ почувствовать невидимые связи — присутствовать одновременно в своей жизни, в базе данных и в звуке проекта THE LINE.
-",
-    playDesc: "Как взаимодействовать с проектом: нажми «подключиться», включи звук, введи дату рождения и нажми «запомнить». Дата добавится в базу, соединится с другими и станет частью общей партитуры, которую можно слушать на сайте в реальном времени.
-",
+    introDesc: "Это web-инсталляция, которая работает постоянно в реальном времени. Каждый человек может оставить свою дату рождения на сайте, она попадет в базу данных и станет частью большой общей музыкальной партитуры. Мы разработали специальный микротональный строй, в котором каждая цифра даты рождения получает свое уникальное звучание. Так даты рождения разных людей из разных мест начинают звучать как единое звуковое поле. то мета-соприсутствие. Звук - существует в физичестком поле плотно заполняя пространство и обозначая невидимые связи между видимыми объектами. Звуковое поле созданное датами рождения мноетсва ледй формирует новое общее физическое пространство в метаполе. Мы одновременно начинаем присутствовать и в настоящем моменте своей жизни, и в базе данных дат, и в звуковом микротональном поле проекта THE LINE. \n",
+    playDesc: "Как взаимодействовать с проектом: вы можете ввести свою дату рождения на сайте. Дата добавляется в общую базу данных, соединятся с другими датами и становится частью общей музыкальной партитуры, звучание которой вы в реальном времени можете слышать на сайте.\n",
    
    
  contacts: "студия цифрового искусства " +
@@ -59,10 +57,10 @@ const TEXTS = {
   ".",
 
 // статусные подписи (нейтральные)
-waitingStart: "ожидание. нажмите «подключиться»",
-  statusPreparingSound: "готовлю звук…",
+waitingStart: "ожидание запуска. нажмите кнопку подключиться",
+  statusPreparingSound: "готовлю звук",
   statusSoundReady: "звук готов",
-  statusSubscribing: "подписываюсь на базу данных",
+  statusSubscribing: "подписываюсь на базу данных с датами",
   statusNoData: "Нет данных для проигрывания. Добавьте дату ниже.",
   errToneMissing: "Tone.js не загрузился. Проверьте интернет/скрипты.",
   errAudioBlocked: "ваш браузер заблокировал аудио. кликните ещё раз или разрешите звук",
@@ -70,8 +68,8 @@ waitingStart: "ожидание. нажмите «подключиться»",
   errFirebaseInit: "Ошибка инициализации Firebase (config.js).",
 
 // ошибки валидации формы
-  errBadFormat: "попробуйте ещё раз: формат ДД.ММ.ГГГГ",
-  errDeathBeforeBirth: "попробуйте ещё раз: формат ДД.ММ.ГГГГ",
+  errBadFormat: "попробуйте еще раз ввести даты в верном формате",
+  errDeathBeforeBirth: "дпопробуйте еще раз ввести даты в верном формате",
   errWriteFailed: "Ошибка записи. Проверьте соединение/Rules.",
 // чтение из базы
   dbReadError: "Ошибка чтения из базы",
@@ -88,7 +86,7 @@ waitingStart: "ожидание. нажмите «подключиться»",
   nowPlayingBtn: "кто сейчас звучит?",
 
 // «успех-бар» (белый текст)
-  okBar: "теперь ты звучишь вместе со всеми"
+  okBar: "ваша запись добавлена в память цифрового мемориала"
 
   },
   en: {
@@ -96,11 +94,9 @@ addBtn: "remember",
 startBtn: "connect",
 birthInput: "date of birth (dd.mm.yyyy)",
 deathInput: "date of death (dd.mm.yyyy)",
-projectTitle: "THE LINE",
-introDesc: "THE LINE is a real-time web installation. Anyone can leave their date of birth on the site — it is saved to a shared database and becomes part of a collective musical score. We designed a microtonal tuning where each digit has its own pitch, so dates from different people begin to sound as one continuous sound field. It's a way to sense invisible connections — to be present at once in your life, in the database, and in the sound of THE LINE.
-"score\" in which each digit turns into a sound. And the music of memory plays cyclically, endlessly.\n\nUsually, rituals are tied to a place: in a church we light a candle for the repose, and at a monument we lay flowers. But today the digital world has become a full-fledged space of human life. We are used to storing the artefacts of our lives in the cloud: we collect data about the past, memories and thoughts in metaverses. Likewise, metaspace can become a place for \"eternal memory\" because it already possesses the characteristic of the eternal. A permanent place for permanent memory.",
-playDesc: "How to interact with the project: press “connect”, allow audio, enter your date of birth and press “remember”. Your date will be added to the shared database, join the others, and become part of the collective score you can hear in real time.
-"be inside memory\", discovering the body of memory through sound and entering into a close, honest contact with memory. Not an impulsive contact, but a prolonged contact-presence.",
+projectTitle: "MEMORIAL",
+introDesc: "This is a digital memorial — a website with a database that stores dates of birth and death of different people. On the site, any user can enter dates and they will become part of a common \"score\" in which each digit turns into a sound. And the music of memory plays cyclically, endlessly.\n\nUsually, rituals are tied to a place: in a church we light a candle for the repose, and at a monument we lay flowers. But today the digital world has become a full-fledged space of human life. We are used to storing the artefacts of our lives in the cloud: we collect data about the past, memories and thoughts in metaverses. Likewise, metaspace can become a place for \"eternal memory\" because it already possesses the characteristic of the eternal. A permanent place for permanent memory.",
+playDesc: "You can enter the birth–death dates of any person whose memory you want to honor and preserve. The dates will be added to the database, joined with other dates, and become part of the shared musical score of eternal memory.\n\nEach of the 16\u00A0digits becomes a note — and begins to sound on an equal footing with the rest, continuing the flow. The digital memorial has its own microtonal musical system that does not resemble earthly music. A new octave was created for the memorial, consisting not of 13\u00A0notes like the classical octave, but of 10\u00A0notes. Each digit [ from\u00A00 to\u00A09 ] corresponds to its own pitch — its own frequency. The memorial translates the digits of the dates of birth and death of people into a sonic field, giving them duration and physical density. It is a monument that allows us to \"be inside memory\", discovering the body of memory through sound and entering into a close, honest contact with memory. Not an impulsive contact, but a prolonged contact-presence.",
    
 contacts: "the project was created by " +
     "<a class=\"u-link\" href=\"" + studioUrl + "\" target=\"_blank\" rel=\"noopener\">" + studioNameEn + "</a>" +
@@ -111,10 +107,10 @@ contacts: "the project was created by " +
   ".",
 
     // статусные подписи (нейтральные)
-  waitingStart: "waiting to start. press “connect”",
-  statusPreparingSound: "preparing sound…",
+  waitingStart: "waiting to start. press connect-button",
+  statusPreparingSound: "Preparing sound…",
   statusSoundReady: "Sound is ready.",
-  statusSubscribing: "subscribing to the database",
+  statusSubscribing: "subscribing to database",
   statusNoData: "No data to play. Please add a date below.",
   errToneMissing: "Tone.js did not load. Check internet/scripts.",
   errAudioBlocked: "Audio was blocked by the browser. Click again or allow sound.",
@@ -138,11 +134,11 @@ contacts: "the project was created by " +
   hz: "Hz",
   idxLabel: "idx",
   dbCount: "dates in database: {n}",
-nowPlayingBtn: "who is playing now?",
+nowPlayingBtn: "whо is sounding now?",
 
 
 // «успех-бар» (белый текст)
-  okBar: "now you sound together with everyone"
+  okBar: "your entry has been added to the Digital Memorial's memory"
 
   }
 };
