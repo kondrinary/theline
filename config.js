@@ -42,13 +42,19 @@ const TEXTS = {
     addBtn: "запомнить",
     startBtn: "подключиться",
     birthInput: "дата рождения (дд.мм.гггг)",
-    deathInput: "дата смерти (дд.мм.гггг)",
+    deathInput: "",
     projectTitle: "THE LINE",
-    introDesc: "Это web-инсталляция, которая работает постоянно в реальном времени. Каждый человек может оставить свою дату рождения на сайте, она попадет в базу данных и станет частью большой общей музыкальной партитуры. Мы разработали специальный микротональный строй, в котором каждая цифра даты рождения получает свое уникальное звучание. Так даты рождения разных людей из разных мест начинают звучать как единое звуковое поле. то мета-соприсутствие. Звук - существует в физичестком поле плотно заполняя пространство и обозначая невидимые связи между видимыми объектами. Звуковое поле созданное датами рождения мноетсва ледй формирует новое общее физическое пространство в метаполе. Мы одновременно начинаем присутствовать и в настоящем моменте своей жизни, и в базе данных дат, и в звуковом микротональном поле проекта THE LINE. \n",
-    playDesc: "Как взаимодействовать с проектом: вы можете ввести свою дату рождения на сайте. Дата добавляется в общую базу данных, соединятся с другими датами и становится частью общей музыкальной партитуры, звучание которой вы в реальном времени можете слышать на сайте.\n",
+    introDesc: "Это «Линия» — цифровое пространство памяти и жизни.
+Здесь хранится общая база дат рождения. Вы вводите дату — и она становится частью общего звучания: каждая цифра превращается в звук, а вместе они собираются в бесконечную партитуру.
+
+Мы привыкли хранить в «облаке» фотографии, переписки и заметки — следы своей жизни. Эта работа предлагает ещё один формат: сохранить дату как звук, который продолжает звучать в общем потоке."партитуры\", в которой каждая цифра превращается в звук. И музыка памяти звучит циклично-бесконечно.\n\nОбычно, ритуалы привязаны к месту: в храме мы ставим свечку за упокой, а к памятнику возлагаем цветы. Но цифровой мир сегодня - стал полноправным пространством жизни человека. Мы привыкли к облачному хранению артефактов своей жизни: собираем в метавселенных данные о прошлом, воспоминания и мысли. Но так же, метапространство может стать местом для \"вечной памяти\" потому, что само по себе уже обладает характеристикой вечного. Вечное место для вечной памяти.",
+    playDesc: "Введите дату рождения человека, которого хотите вспомнить. Дата попадёт в базу данных и станет частью общего звучания.
+
+В записи 8 цифр. Каждая цифра превращается в ноту — и начинает звучать наравне со всеми.
+Здесь используется микротональный строй: вместо привычной октавы с 12–13 ступенями — 10 ступеней, по одной на цифру 0–9. Так дата получает длительность и «телесность» в звуке: это способ тихо и честно побыть рядом с памятью."побыть внутри памяти\", обнаруживая тело памяти через звук и вступая с памятью в близкий честный контакт.",
    
    
- contacts: "студия цифрового искусства " +
+ contacts: "проект создан студией цифрового искусства " +
     "<a class=\"u-link\" href=\"" + studioUrl + "\" target=\"_blank\" rel=\"noopener\">" + studioName + "</a>" +
   ". художники: " +
     "<a class=\"u-link\" href=\"" + artist1Url + "\" target=\"_blank\" rel=\"noopener\">" + artist1Name + "</a>" +
@@ -57,46 +63,52 @@ const TEXTS = {
   ".",
 
 // статусные подписи (нейтральные)
-waitingStart: "ожидание запуска. нажмите кнопку подключиться",
-  statusPreparingSound: "готовлю звук",
+waitingStart: "ожидание. нажмите «подключиться», чтобы включить звук",
+  statusPreparingSound: "готовлю звук…",
   statusSoundReady: "звук готов",
-  statusSubscribing: "подписываюсь на базу данных с датами",
-  statusNoData: "Нет данных для проигрывания. Добавьте дату ниже.",
-  errToneMissing: "Tone.js не загрузился. Проверьте интернет/скрипты.",
-  errAudioBlocked: "ваш браузер заблокировал аудио. кликните ещё раз или разрешите звук",
+  statusSubscribing: "подключаюсь к базе дат…",
+  statusNoData: "в базе пока нет дат. добавьте дату рождения ниже",
+  errToneMissing: "tone.js не загрузился. проверьте интернет или блокировщики",
+  errAudioBlocked: "браузер заблокировал звук. нажмите ещё раз или разрешите аудио",
   errSynthInit: "Ошибка инициализации синтезатора.",
   errFirebaseInit: "Ошибка инициализации Firebase (config.js).",
 
 // ошибки валидации формы
-  errBadFormat: "попробуйте еще раз ввести даты в верном формате",
-  errDeathBeforeBirth: "дпопробуйте еще раз ввести даты в верном формате",
+  errBadFormat: "неверный формат. введите дату как дд.мм.гггг",
+  errDeathBeforeBirth: "некорректная дата. проверьте день, месяц и год",
   errWriteFailed: "Ошибка записи. Проверьте соединение/Rules.",
 // чтение из базы
-  dbReadError: "Ошибка чтения из базы",
+  dbReadError: "ошибка чтения из базы",
 // тестовая запись
-  seedAdding: "Пробую добавить тестовую запись…",
-  seedInitFailed: "Firebase не инициализируется. Проверь config.js.",
+  seedAdding: "пробую добавить тестовую запись…",
+  seedInitFailed: "firebase не инициализируется. проверьте config.js",
   seedAdded: "Тестовая запись добавлена:",
   seedWriteFailed: "Ошибка записи (Rules/сеть).",
 // воспроизведение
   nowPlaying: "сейчас звучит ",
   hz: "Гц",
   idxLabel: "индекс ",
-  dbCount: "количество дат: {n}",
+  dbCount: "дат в базе: {n}",
   nowPlayingBtn: "кто сейчас звучит?",
 
 // «успех-бар» (белый текст)
-  okBar: "ваша запись добавлена в память цифрового мемориала"
+  okBar: "теперь ты звучишь вместе со всеми"
 
   },
   en: {
 addBtn: "remember",
 startBtn: "connect",
 birthInput: "date of birth (dd.mm.yyyy)",
-deathInput: "date of death (dd.mm.yyyy)",
-projectTitle: "MEMORIAL",
-introDesc: "This is a digital memorial — a website with a database that stores dates of birth and death of different people. On the site, any user can enter dates and they will become part of a common \"score\" in which each digit turns into a sound. And the music of memory plays cyclically, endlessly.\n\nUsually, rituals are tied to a place: in a church we light a candle for the repose, and at a monument we lay flowers. But today the digital world has become a full-fledged space of human life. We are used to storing the artefacts of our lives in the cloud: we collect data about the past, memories and thoughts in metaverses. Likewise, metaspace can become a place for \"eternal memory\" because it already possesses the characteristic of the eternal. A permanent place for permanent memory.",
-playDesc: "You can enter the birth–death dates of any person whose memory you want to honor and preserve. The dates will be added to the database, joined with other dates, and become part of the shared musical score of eternal memory.\n\nEach of the 16\u00A0digits becomes a note — and begins to sound on an equal footing with the rest, continuing the flow. The digital memorial has its own microtonal musical system that does not resemble earthly music. A new octave was created for the memorial, consisting not of 13\u00A0notes like the classical octave, but of 10\u00A0notes. Each digit [ from\u00A00 to\u00A09 ] corresponds to its own pitch — its own frequency. The memorial translates the digits of the dates of birth and death of people into a sonic field, giving them duration and physical density. It is a monument that allows us to \"be inside memory\", discovering the body of memory through sound and entering into a close, honest contact with memory. Not an impulsive contact, but a prolonged contact-presence.",
+deathInput: "",
+projectTitle: "THE LINE",
+introDesc: "This is The Line — a digital space for memory and life.
+It holds a shared database of birth dates. You enter a date, and it becomes part of the collective sound: each digit turns into a tone, and together they form an endless score.
+
+We already keep photos, messages, and notes in the cloud — traces of our lives. This work suggests one more form: to save a date as sound that continues inside a shared flow."score\" in which each digit turns into a sound. And the music of memory plays cyclically, endlessly.\n\nUsually, rituals are tied to a place: in a church we light a candle for the repose, and at a monument we lay flowers. But today the digital world has become a full-fledged space of human life. We are used to storing the artefacts of our lives in the cloud: we collect data about the past, memories and thoughts in metaverses. Likewise, metaspace can become a place for \"eternal memory\" because it already possesses the characteristic of the eternal. A permanent place for permanent memory.",
+playDesc: "Enter the birth date of someone you want to remember. The date will be added to the database and become part of the collective sound.
+
+A single entry has 8 digits. Each digit becomes a note and plays alongside all the others.
+The system uses a microtonal tuning: instead of a familiar octave with 12–13 steps, it has 10 steps — one for each digit 0–9. This gives the date duration and a physical sense in sound — a quiet, honest way to stay close to memory."be inside memory\", discovering the body of memory through sound and entering into a close, honest contact with memory. Not an impulsive contact, but a prolonged contact-presence.",
    
 contacts: "the project was created by " +
     "<a class=\"u-link\" href=\"" + studioUrl + "\" target=\"_blank\" rel=\"noopener\">" + studioNameEn + "</a>" +
@@ -107,38 +119,38 @@ contacts: "the project was created by " +
   ".",
 
     // статусные подписи (нейтральные)
-  waitingStart: "waiting to start. press connect-button",
+  waitingStart: "Waiting. Press “connect” to start sound.",
   statusPreparingSound: "Preparing sound…",
   statusSoundReady: "Sound is ready.",
-  statusSubscribing: "subscribing to database",
-  statusNoData: "No data to play. Please add a date below.",
-  errToneMissing: "Tone.js did not load. Check internet/scripts.",
-  errAudioBlocked: "Audio was blocked by the browser. Click again or allow sound.",
+  statusSubscribing: "Connecting to the dates database…",
+  statusNoData: "No dates yet. Add a birth date below.",
+  errToneMissing: "Tone.js didn’t load. Check your connection or blockers.",
+  errAudioBlocked: "Your browser blocked audio. Click again or allow sound.",
   errSynthInit: "Synth initialization error.",
   errFirebaseInit: "Firebase initialization error (config.js).",
 
 // ошибки валидации формы
-  errBadFormat: "error: format must be DD.MM.YYYY",
-  errDeathBeforeBirth: "error: death date is earlier than birth date.",
+  errBadFormat: "Wrong format. Use DD.MM.YYYY.",
+  errDeathBeforeBirth: "Invalid date. Check day, month, and year.",
   errWriteFailed: "Write error. Check connection/Rules.",
 // чтение из базы 
-  dbReadError: "Database read error",
+  dbReadError: "Database read error.",
 // тестовая запись
-  seedAdding: "Trying to add a test record…",
-  seedInitFailed: "Firebase fails to initialize. Check config.js.",
+  seedAdding: "Trying to add a test entry…",
+  seedInitFailed: "Firebase is not initialized. Check config.js.",
   seedAdded: "Test record added:",
   seedWriteFailed: "Write error (Rules/network).",
 // воспроизведение
 
-  nowPlaying: "now playing",
+  nowPlaying: "now playing ",
   hz: "Hz",
   idxLabel: "idx",
   dbCount: "dates in database: {n}",
-nowPlayingBtn: "whо is sounding now?",
+nowPlayingBtn: "who is playing now?",
 
 
 // «успех-бар» (белый текст)
-  okBar: "your entry has been added to the Digital Memorial's memory"
+  okBar: "Now you sound together with everyone."
 
   }
 };
@@ -205,16 +217,15 @@ window.AppConfig = {
   DB_PATH: 'dates',
 
   // Firebase Console Config (замени на свой)
-firebaseConfig: {
-  apiKey: "AIzaSyDkQzsSnNP420SyI4KMSxK1xhc9ZoOYK8E",
-  authDomain: "thelifeline-ac849.firebaseapp.com",
-  databaseURL: "https://thelifeline-ac849-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "thelifeline-ac849",
-  storageBucket: "thelifeline-ac849.firebasestorage.app",
-  messagingSenderId: "233108668587",
-  appId: "1:233108668587:web:80492ef1cf7ff0473af7ee",
-  measurementId: "G-LV68Z2VZCH"
-}
+  firebaseConfig: {
+    apiKey: "ВАШ_API_KEY",
+    authDomain: "ВАШ_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://memorial-bea3c.europe-west1.firebasedatabase.app/",
+    projectId: "ВАШ_PROJECT_ID",
+    storageBucket: "ВАШ_PROJECT_ID.appspot.com",
+    messagingSenderId: "ВАШ_MESSAGING_SENDER_ID",
+    appId: "ВАШ_APP_ID"
+  }
 };
 
 
