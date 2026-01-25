@@ -206,14 +206,13 @@ window.AppConfig = {
 
   // Firebase Console Config (замени на свой)
 firebaseConfig: {
-  apiKey: "AIzaSyDkQzsSnNP420SyI4KMSxK1xhc9ZoOYK8E",
-  authDomain: "thelifeline-ac849.firebaseapp.com",
-  databaseURL: "https://thelifeline-ac849-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "thelifeline-ac849",
-  storageBucket: "thelifeline-ac849.firebasestorage.app",
-  messagingSenderId: "233108668587",
-  appId: "1:233108668587:web:80492ef1cf7ff0473af7ee",
-  measurementId: "G-LV68Z2VZCH"
+  apiKey: "AIzaSyAHqP0yPVlbV52o9ByL3kWEmHpncWMl9Js",
+  authDomain: "theline-eac2d.firebaseapp.com",
+  projectId: "theline-eac2d",
+  storageBucket: "theline-eac2d.firebasestorage.app",
+  messagingSenderId: "282983558459",
+  appId: "1:282983558459:web:bf2ad14100a28a47ba5b1e",
+  measurementId: "G-JC8NP0DWDS"
 }
 };
 
